@@ -21,6 +21,8 @@ class APIKey(Base):
     # format rr_live_xxxxxxxxxxxxxxxxxxxxxx
     key_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     
+    key_prefix: Mapped[str] = mapped_column(String(20), nullable=False)
+    
     #is_active
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     

@@ -24,7 +24,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright browsers (for scraping JS-rendered pages)
-#RUN playwright install chromium --with-deps   must do later build failed with error
+RUN playwright install chromium
+RUN playwright install-deps chromium || true   
 
 # Copy the rest of the application code
 COPY . .

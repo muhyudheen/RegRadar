@@ -60,10 +60,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: regradar_beat
-    command: celery -A app.workers.celery_app beat --loglevel=info --scheduler celery.beat:PersistentScheduler
+    command: celery -A app.workers.celery_app beat --loglevel=info --scheduler celery.beat:PersistentScheduler --schedule /app/celery_beat_schedules/celerybeat-schedule
     volumes:
       - ./backend:/app
-      - celery_beat_data:/app/celerybeat-schedule   # Persist beat schedule
+      - celery_beat_data:/app/celery_beat_schedules   # Persist beat schedule
     env_file:
       - .env
     environment:

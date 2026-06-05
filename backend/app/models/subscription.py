@@ -88,7 +88,7 @@ class Subscription(Base):
     )
  
     # Relationships
-    api_key = relationship("ApiKey", backref="subscriptions")
+    api_key = relationship("APIKey", backref="subscriptions")
  
     def __repr__(self) -> str:
         return (

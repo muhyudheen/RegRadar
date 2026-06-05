@@ -14,5 +14,12 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
     # Beat schedule — scraper runs every 15 minutes
-    beat_schedule={},  # Empty for now — add tasks here later
+    beat_schedule={# Run all scrapers every 15 minutes
+        "run-all-scrapers": {
+            "task": "scraper.run_all",
+            "schedule": 900.0,          # 900 seconds = 15 minutes
+        },
+    },  
 )
+
+celery_app.autodiscover_tasks(["app.workers"])
