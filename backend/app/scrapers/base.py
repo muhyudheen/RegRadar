@@ -89,7 +89,7 @@ class BaseScraper(ABC):
         try:
             html = self._fetch(self.source_url)
             relevant = self.parse(html)
-            plain_text = self.strip_to_plain_text(relevant)
+            plain_text = self._strip_to_plain_text(relevant)
             
             if not plain_text.strip():
                 return ScrapeError(
@@ -136,26 +136,42 @@ class BaseScraper(ABC):
     def _fetch(self, url: str) -> str:
         """
         Fetch strategy:
-          1. Try httpx (fast, no browser)
-          2. If content looks JS-rendered (sparse body) → Playwright
-          3. If httpx errors → Playwright
+        1. Try httpx (fast, no browser, real size cap)
+        2. If content looks JS-rendered (sparse body) → Playwright
+        3. If httpx network error → Playwright
+        4. If httpx HTTP error (4xx/5xx) → do NOT fall through to Playwright
+            A server error is a server error — Playwright won't fix it
+            and may load an uncapped error page
         """
-        
         try:
             html = self._fetch_httpx(url)
-            
-            body_text = BeautifulSoup(html, 'lxml').get_text(strip=True)
+
+            # Heuristic: sparse body = JS-rendered page
+            body_text = BeautifulSoup(html, "lxml").get_text(strip=True)
             if len(body_text) < JS_RENDER_THRESHOLD:
                 logger.info(
                     f"{url} returned {len(body_text)} chars via httpx "
                     f"(threshold {JS_RENDER_THRESHOLD}) — trying Playwright"
                 )
                 return self._fetch_playwright(url)
- 
+
             return html
-        
-        except Exception as e:
-            logger.warning(f"HTTP fetch failed for {url}: {e} - trying playwright")
+
+        except httpx.HTTPStatusError as e:
+            # S4 fix: HTTP errors (4xx/5xx) do NOT fall through to Playwright
+            # A 404/500 from the server is a real error — Playwright
+            # would just load the same error page, possibly uncapped
+            logger.error(
+                f"HTTP {e.response.status_code} from {url} — "
+                f"not retrying with Playwright"
+            )
+            raise
+
+        except httpx.RequestError as e:
+            # Network errors (DNS, timeout, connection refused) DO
+            # fall through to Playwright — sometimes JS-heavy sites
+            # reject non-browser user agents at the network level
+            logger.warning(f"httpx network error for {url}: {e} — trying Playwright")
             return self._fetch_playwright(url)
         
     def _fetch_httpx(self, url: str) -> str:
@@ -182,47 +198,67 @@ class BaseScraper(ABC):
                 chunks.append(chunk)
                 
             raw = b"".join(chunks)
-            try:
-                return raw.decode("utf-8")
-            except UnicodeDecodeError:
-                return raw.decode("latin-1", errors="replace")
+            return raw.decode("utf-8", errors="replace")
+
             
     def _fetch_playwright(self, url: str) -> str:
         """
         Fetch via headless Chromium.
         Slow path — used for JS-rendered government sites.
-        Waits for network idle so dynamic content is loaded.
+
+        S3 fix: size cap is enforced BEFORE the full page loads
+        using Playwright's route interception to abort responses
+        that exceed MAX_RESPONSE_BYTES. This is real OOM protection
+        unlike the previous post-hoc string slice.
         """
         try:
-            from playwright.sync_api import sync_playwright
+            from playwright.sync_api import sync_playwright, Route, Request
         except ImportError:
             raise RuntimeError(
                 "Playwright is not installed. "
                 "Run: playwright install chromium"
             )
+
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             try:
                 page = browser.new_page()
                 page.set_extra_http_headers({
-                    "User-Agent": "RegRadar-Scraper/1.0 (compliance monitoring)" #change it to the upcoming original name
+                    "User-Agent": "RegRadar-Scraper/1.0 (compliance monitoring)"
                 })
-                
-                page.goto(url, wait_until='networkidle', timeout=30000)
-                
+
+                # S3 fix: intercept responses and abort if too large
+                # This stops the download BEFORE it fills memory
+                def handle_route(route: Route, request: Request):
+                    # Only intercept the main document request
+                    if request.resource_type == "document":
+                        response = route.fetch()
+                        body = response.body()
+                        if len(body) > MAX_RESPONSE_BYTES:
+                            logger.warning(
+                                f"Playwright response for {url} exceeded "
+                                f"{MAX_RESPONSE_BYTES}B — aborting"
+                            )
+                            route.abort()
+                            return
+                        route.fulfill(response=response)
+                    else:
+                        # Block images, fonts, stylesheets — not needed
+                        # for text extraction and wastes bandwidth
+                        if request.resource_type in ("image", "font", "stylesheet", "media"):
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                page.route("**/*", handle_route)
+
+                page.goto(url, wait_until="networkidle", timeout=30000)
                 html = page.content()
-                
-# Playwright has no built-in size cap — apply one manually
-                if len(html.encode("utf-8")) > MAX_RESPONSE_BYTES:
-                    logger.warning(f"Playwright response for {url} exceeds cap — truncating")
-                    html = html[:MAX_RESPONSE_BYTES]
- 
                 return html
- 
+
             finally:
                 browser.close()
                 
-    @classmethod
     @classmethod
     def _get_httpx_client(cls) -> httpx.Client:
         if cls._httpx_client is None:

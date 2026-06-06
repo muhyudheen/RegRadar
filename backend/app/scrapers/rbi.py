@@ -45,20 +45,20 @@ class RBIWhatsNewScraper(BaseScraper):
             tables = soup.find_all("table", class_="tablebg")
             if tables:
                 for table in tables[:3]:
-                    content_parts.append(table.get_text(seperator=" ", strip=True))
+                    content_parts.append(table.get_text(separator=" ", strip=True))
                     
             # Fallback — grab the main content div
             if not content_parts:
                 main = soup.find("div",id='mainContent')
                 if main:
-                    content_parts.append(main.get_text(seperator=" ", strip=True))
+                    content_parts.append(main.get_text(separator=" ", strip=True))
                     
             # Last fallback — full body text
             if not content_parts:
                 body = soup.find("body")
                 if body:
                     content_parts.append(
-                        body.get_text(seperator=" ", strip=True)
+                        body.get_text(separator=" ", strip=True)
                     )
                     
             return " ".join(content_parts) if content_parts else html

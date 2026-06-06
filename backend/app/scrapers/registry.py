@@ -11,5 +11,5 @@ from app.scrapers.rbi import RBIWhatsNewScraper
 # add new scrapers here as you build them
 
 ACTIVE_SCRAPERS = [
-    RBIWhatsNewScraper(),
+    RBIWhatsNewScraper,
 ]

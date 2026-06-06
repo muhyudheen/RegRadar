@@ -5,6 +5,9 @@ celery_app = Celery(
     "regradar",
     broker=os.getenv("REDIS_URL", "redis://redis:6379/0"),
     backend=os.getenv("REDIS_URL", "redis://redis:6379/0"),
+    include=[
+        "app.workers.scraper_tasks",   # ← explicit include
+    ]
 )
 
 celery_app.conf.update(

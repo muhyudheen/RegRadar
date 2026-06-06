@@ -14,7 +14,7 @@
 #     Runs one scraper, compares hash, stores
 #     change if content changed.
 # ─────────────────────────────────────────────────
-
+import uuid
 import logging
 from datetime import datetime, timezone
 
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 # Redis lock timeout — if a scraper runs longer than this
 # something is wrong, release the lock
-LOCK_TIMEOUT_SECONDS = 300
+LOCK_TIMEOUT_SECONDS = 600
 
 @celery_app.task(name="scraper.run_all")
 def run_all_scrapers():
@@ -50,10 +50,11 @@ def run_all_scrapers():
     
 @celery_app.task(
     name="scraper.run_single",
+    bind=True,
     max_retries=3,
     default_retry_delay=60,  # retry after 1 minute if it fails
 )
-def run_single_scraper(scraper_class_name: str):
+def run_single_scraper(self, scraper_class_name: str):
     """
     Run a single scraper by class name.
 
@@ -73,9 +74,10 @@ def run_single_scraper(scraper_class_name: str):
     # ── 1. Acquire lock ───────────────────────────
     # nx=True means only set if not exists (atomic)
     # ex= sets expiry so lock auto-releases on crash
+    lock_token = str(uuid.uuid4())  # unique token for this lock instance
     lock_acquired = redis_client.set(
         lock_key,
-        '1',
+        lock_token,
         nx=True,
         ex=LOCK_TIMEOUT_SECONDS,
     )
@@ -108,10 +110,25 @@ def run_single_scraper(scraper_class_name: str):
             return
         
         _process_scrape_result(result)
+    
+    except Exception as e:                # ← ADD THIS BLOCK here
+        logger.exception(
+            f"Unexpected error in scraper {scraper_class_name}: {e}"
+        )
+        raise self.retry(exc=e)
         
     finally:
-        # ── 5. Always release lock ────────────────
-        redis_client.delete(lock_key)
+        # ── Release lock only if token matches ───────
+        # Lua script is atomic — prevents race between
+        # check and delete operations
+        lua_script = """
+        if redis.call('get', KEYS[1]) == ARGV[1] then
+            return redis.call('del', KEYS[1])
+        else
+            return 0
+        end
+        """
+        redis_client.eval(lua_script, 1, lock_key, lock_token)
         
 def _process_scrape_result(result: ScrapeResult) -> None:
     """
