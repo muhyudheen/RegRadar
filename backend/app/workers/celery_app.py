@@ -6,7 +6,9 @@ celery_app = Celery(
     broker=os.getenv("REDIS_URL", "redis://redis:6379/0"),
     backend=os.getenv("REDIS_URL", "redis://redis:6379/0"),
     include=[
-        "app.workers.scraper_tasks",   # ← explicit include
+        "app.workers.scraper_tasks",
+        "app.workers.ai_tasks",
+        "app.workers.webhook_tasks"
     ]
 )
 
@@ -24,5 +26,3 @@ celery_app.conf.update(
         },
     },  
 )
-
-celery_app.autodiscover_tasks(["app.workers"])

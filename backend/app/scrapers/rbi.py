@@ -29,42 +29,38 @@ class RBIWhatsNewScraper(BaseScraper):
     topic = "general"
     
     def parse(self, html: str) -> str:
-        """
-        Extract the press release listing from the RBI page.
-
-        We target the main content table that lists all
-        recent publications — title, date, and reference number.
-        This gives us a stable snapshot to diff against.
-        """
         try:
-            soup = BeautifulSoup(html, 'lxml')
-            
-            # RBI uses a table with class "tablebg" for listings
+            soup = BeautifulSoup(html, "lxml")
             content_parts = []
-            
-            tables = soup.find_all("table", class_="tablebg")
-            if tables:
-                for table in tables[:3]:
-                    content_parts.append(table.get_text(separator=" ", strip=True))
-                    
-            # Fallback — grab the main content div
-            if not content_parts:
-                main = soup.find("div",id='mainContent')
-                if main:
-                    content_parts.append(main.get_text(separator=" ", strip=True))
-                    
-            # Last fallback — full body text
+
+            # Try multiple selectors — RBI changes their HTML structure
+            selectors = [
+                ("table", {"class": "tablebg"}),
+                ("table", {"class": "table"}),
+                ("div", {"id": "mainContent"}),
+                ("div", {"class": "content"}),
+                ("main", {}),
+            ]
+
+            for tag, attrs in selectors:
+                elements = soup.find_all(tag, attrs) if attrs else soup.find_all(tag)
+                if elements:
+                    for el in elements[:3]:
+                        text = el.get_text(separator=" ", strip=True)
+                        if len(text) > 100:    # only meaningful content
+                            content_parts.append(text)
+                    if content_parts:
+                        break
+
+            # Last fallback — body text
             if not content_parts:
                 body = soup.find("body")
                 if body:
-                    content_parts.append(
-                        body.get_text(separator=" ", strip=True)
-                    )
-                    
+                    content_parts.append(body.get_text(separator=" ", strip=True))
+
             return " ".join(content_parts) if content_parts else html
-        
+
         except Exception as e:
-            # In case of any parsing error, return the raw HTML
             return html
     def get_effective_date(self, text: str) -> date | None:
         """

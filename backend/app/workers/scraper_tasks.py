@@ -26,6 +26,8 @@ from app.models.change import Change
 from app.scrapers.base import ScrapeError, ScrapeResult
 from app.scrapers.registry import ACTIVE_SCRAPERS
 from app.workers.celery_app import celery_app
+from app.models.change import Change
+from app.workers.ai_tasks import process_change_with_ai
 
 logger = logging.getLogger(__name__)
 
@@ -180,8 +182,8 @@ def _process_scrape_result(result: ScrapeResult) -> None:
             f"industry={result.industry}"
         )
         
-        # TODO: Trigger AI processing task here (Phase 1 Step 4)
-        # process_change_with_ai.delay(change.id)
+        from app.workers.ai_tasks import process_change_with_ai
+        process_change_with_ai.delay(change.id)
 
     except Exception as e:
         db.rollback()
