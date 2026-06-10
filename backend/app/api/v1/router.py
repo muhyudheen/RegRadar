@@ -7,7 +7,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, subscriptions
+from app.api.v1 import auth, subscriptions, changes
 
 api_router = APIRouter()
 
@@ -23,4 +23,10 @@ api_router.include_router(
     subscriptions.router,
     prefix="/subscriptions",
     tags=["Subscriptions"],
+)
+
+api_router.include_router(
+    changes.router,
+    prefix="/changes",
+    tags=["Changes"],
 )
