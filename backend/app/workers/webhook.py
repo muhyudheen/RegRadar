@@ -1,29 +1,35 @@
 # backend/app/workers/webhook.py
 # ─────────────────────────────────────────────────
-#  Webhook Delivery Worker — Hardened v2
+#  Webhook Delivery Worker — Hardened v3
 #
 #  Security fixes applied in this version:
 #
 #  1. TOCTOU / DNS Rebinding fix
 #     Re-resolves hostname at delivery time, verifies IP,
-#     then uses a CUSTOM TRANSPORT to force TCP connection
-#     to the safe IP while keeping the domain name in the
-#     URL — so TLS SNI works correctly.
+#     then rewrites the request URL to use the validated IP
+#     directly — so no second DNS lookup is ever possible.
 #
-#  2. TLS SNI fix (was broken in v1)
-#     v1 tried to swap hostname for IP in the URL string
-#     and patch the Host header. This breaks TLS because
-#     SNI happens during the handshake, before HTTP headers.
-#     Fix: leave URL unchanged, override DNS at socket level
-#     using a custom httpx transport.
+#  2. TLS SNI fix (v2 was broken — _PinnedResolver no-op)
+#     v2 tried to swap httpcore's internal _resolver attribute.
+#     On httpcore 1.0.9, hasattr(pool, '_resolver') == False,
+#     so the injection silently did nothing.
+#
+#     v3 fix: rewrite URL to IP + custom SSL context that
+#     pins server_hostname to the original domain for SNI.
+#
+#     How it works:
+#       - URL rewritten to IP → httpcore connects to safe IP
+#         (no DNS resolution possible — we give it an IP, not hostname)
+#       - Custom SSL context → wrap_socket always gets original
+#         domain as server_hostname → SNI correct → cert validates
+#       - Host header set to original hostname → HTTP routing works
+#
+#     No private httpcore internals touched.
 #
 #  3. Redirect protection
 #     follow_redirects=False — any 3xx is treated as an attack.
 #
 #  4. URL rebuilding via urllib.parse (not string replace)
-#     String replace on URLs is fragile. We now use
-#     urlparse/urlunparse to surgically rebuild only the
-#     netloc component.
 #
 #  5. Timeout hardening
 #     Hard connect + read timeouts on every request.
@@ -44,7 +50,7 @@ from app.core.webhook_signing import (
     TIMESTAMP_HEADER,
     sign_webhook_payload,
 )
-from app.core.webhook_validator import BLOCKED_NETWORKS, BLOCKED_HOSTNAMES
+from app.core.webhook_validator import BLOCKED_HOSTNAMES
 
 
 # ── Config ────────────────────────────────────────
@@ -53,6 +59,9 @@ READ_TIMEOUT_SECONDS    = 30
 
 # Retry delays in seconds: 1m, 5m, 30m, 2h, 24h
 RETRY_DELAYS = [60, 300, 1800, 7200, 86400]
+
+# Default ports by scheme
+_DEFAULT_PORTS = {"https": 443, "http": 80}
 
 
 # ══════════════════════════════════════════════════
@@ -98,7 +107,7 @@ def _resolve_to_safe_ip(hostname: str) -> str:
         try:
             ip = ipaddress.ip_address(ip_str)
 
-            # Collapse IPv4-mapped IPv6 (same fix as validator)
+            # Collapse IPv4-mapped IPv6
             if getattr(ip, "ipv4_mapped", None):
                 ip = ip.ipv4_mapped
 
@@ -110,7 +119,6 @@ def _resolve_to_safe_ip(hostname: str) -> str:
                         f"IPv6 ULA address '{ip_str}' at delivery time."
                     )
 
-            # is_global catches everything else we might miss
             if not ip.is_global:
                 raise SSRFDeliveryError(
                     f"DNS rebinding detected: '{hostname}' resolved to "
@@ -127,110 +135,137 @@ def _resolve_to_safe_ip(hostname: str) -> str:
 
 
 # ══════════════════════════════════════════════════
-#  PART 2: CUSTOM TRANSPORT (TLS SNI fix)
+#  PART 2: CUSTOM TRANSPORT (TLS SNI + IP pinning fix)
 #
-#  The problem with connecting to an IP directly:
-#  TLS SNI is sent during the handshake, BEFORE any
-#  HTTP headers. If we change the URL to use an IP,
-#  the TLS handshake sends the IP as the SNI value.
-#  The server's certificate is issued for the domain name,
-#  not the IP — so TLS fails immediately.
+#  v2 PROBLEM:
+#  _PinnedResolver was injected into httpcore's _pool._resolver
+#  but on httpcore 1.0.9, ConnectionPool has no _resolver attribute.
+#  The injection silently did nothing. Dead code.
 #
-#  The fix: leave the URL with the domain name intact
-#  (so TLS SNI sends the correct hostname), but intercept
-#  the TCP connection at the socket level and force it to
-#  connect to our pre-verified safe IP instead of doing
-#  a fresh DNS lookup.
+#  v3 SOLUTION — two parts working together:
 #
-#  This way:
-#  - TLS handshake sees the domain name → SNI works ✅
-#  - TCP socket connects to our safe IP → no DNS rebinding ✅
+#  Part A — URL rewriting:
+#    Rewrite request URL to use the pre-validated IP directly.
+#    httpcore sees "https://1.2.3.4/..." and connects to that IP.
+#    No hostname → no DNS lookup → TOCTOU closed permanently.
+#
+#  Part B — Pinned SSL context:
+#    When URL uses an IP, httpcore passes the IP as server_hostname
+#    to ssl.wrap_socket() → TLS SNI sends "1.2.3.4" → cert for
+#    "example.com" fails validation.
+#
+#    Fix: Custom SSL context that wraps wrap_socket() and forces
+#    server_hostname to always be the original domain, regardless
+#    of what IP httpcore tries to pass.
+#    → SNI sends "example.com" → cert validates correctly ✅
+#
+#  Part C — Host header:
+#    HTTP/1.1 requires Host: header to contain the domain name,
+#    not the IP. We explicitly set it to the original hostname.
 # ══════════════════════════════════════════════════
+
+def _make_pinned_ssl_context(original_hostname: str) -> ssl.SSLContext:
+    """
+    Create an SSL context that always uses original_hostname for
+    SNI and certificate validation, regardless of what IP address
+    is in the URL.
+
+    This is the TLS fix: we connect to an IP (preventing DNS
+    rebinding) but the TLS handshake still validates the certificate
+    against the original domain name.
+
+    Implementation: monkey-patches wrap_socket on the context
+    instance (not the class) to intercept httpcore's SNI setting.
+    """
+    ctx = ssl.create_default_context()
+
+    # Save the original wrap_socket method
+    _real_wrap_socket = ctx.wrap_socket
+
+    def _pinned_wrap_socket(sock: ssl.SSLSocket, server_hostname: str | None = None, **kwargs) -> ssl.SSLSocket:
+        # Always use the original domain name for SNI + cert validation
+        # Ignore whatever IP httpcore tries to pass as server_hostname
+        return _real_wrap_socket(sock, server_hostname=original_hostname, **kwargs)
+
+    # Patch only this context instance, not the class
+    ctx.wrap_socket = _pinned_wrap_socket  # type: ignore[method-assign]
+    return ctx
+
+
+def _build_netloc_with_ip(safe_ip: str, port: int) -> str:
+    """
+    Build a netloc string with a raw IP and port.
+    IPv6 addresses are wrapped in brackets per RFC 2732.
+
+    Examples:
+        "1.2.3.4", 443  → "1.2.3.4:443"
+        "::1",     443  → "[::1]:443"
+    """
+    try:
+        ip = ipaddress.ip_address(safe_ip)
+        if isinstance(ip, ipaddress.IPv6Address):
+            return f"[{safe_ip}]:{port}"
+    except ValueError:
+        pass
+    return f"{safe_ip}:{port}"
+
 
 class SafeIPTransport(httpx.HTTPTransport):
     """
-    Custom httpx transport that forces TCP connection to a
-    pre-verified safe IP while keeping the original domain
-    name in the URL for correct TLS SNI.
+    Custom httpx transport that:
+      1. Rewrites the request URL to use a pre-validated IP directly
+         → no DNS lookup possible → TOCTOU/DNS rebinding closed
+      2. Uses a pinned SSL context to keep original hostname for SNI
+         → TLS certificate validation still works correctly
+      3. Preserves the Host header with the original hostname
+         → HTTP routing works correctly on the server side
 
-    How it works:
-    - httpx/httpcore derive SNI from the URL host
-    - We cannot change SNI via the Host header (that's
-      application layer, after TLS handshake)
-    - Solution: override the connection pool's resolver
-      so hostname → safe_ip at the socket level
-    - URL stays unchanged → TLS SNI uses domain → cert validates
-    - TCP connects to safe_ip → no second DNS lookup possible
-
-    This is the correct implementation. The previous version
-    rewrote the URL to use the IP directly which broke TLS.
+    Works on any version of httpcore — no private attributes accessed.
     """
 
-    def __init__(self, hostname: str, safe_ip: str, **kwargs):
-        # Inject a custom resolver into the underlying
-        # httpcore connection pool before calling super().__init__()
+    def __init__(self, hostname: str, safe_ip: str, scheme: str, port: int, **kwargs):
         self._hostname = hostname
         self._safe_ip  = safe_ip
-        super().__init__(**kwargs)
+        self._scheme   = scheme
+        self._port     = port
 
-        # Override the internal connection pool's resolver
-        # httpcore uses this to resolve hostnames to IPs
-        # By pinning hostname → safe_ip here, we ensure
-        # no DNS lookup ever happens during the request
-        if hasattr(self, "_pool"):
-            self._pool._resolver = _PinnedResolver(hostname, safe_ip)
+        # Inject pinned SSL context for HTTPS connections
+        if scheme == "https":
+            kwargs.setdefault("verify", _make_pinned_ssl_context(hostname))
+
+        super().__init__(**kwargs)
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         """
-        Pass the request through unchanged.
-        The URL stays as https://example.com/...
-        TLS SNI will correctly use 'example.com'
-        TCP will connect to safe_ip via the pinned resolver
+        Rewrite the request to connect directly to safe_ip.
+
+        - URL netloc replaced with IP:port
+          → httpcore connects to IP, no DNS resolution
+        - Host header set to original hostname
+          → HTTP/1.1 routing works correctly
+        - SSL context (set in __init__) ensures SNI uses hostname
+          → TLS cert validation passes
         """
-        return super().handle_request(request)
+        # Build new netloc using the pre-validated IP
+        new_netloc = _build_netloc_with_ip(self._safe_ip, self._port)
 
+        # Rebuild URL with IP netloc, keep everything else (path, query, fragment)
+        parsed = urlparse(str(request.url))
+        new_url = urlunparse(parsed._replace(netloc=new_netloc))
 
-class _PinnedResolver:
-    """
-    A minimal DNS resolver that returns a fixed IP for one hostname
-    and falls back to real DNS for everything else.
+        # Build headers — preserve all original headers but force Host
+        # to the original hostname (not the IP we just put in the URL)
+        headers = dict(request.headers)
+        headers["host"] = self._hostname
 
-    Injected into httpcore's connection pool to pin
-    hostname → safe_ip at the socket level.
-    """
+        new_request = httpx.Request(
+            method=request.method,
+            url=new_url,
+            headers=headers,
+            content=request.content,
+        )
 
-    def __init__(self, hostname: str, safe_ip: str):
-        self._hostname = hostname
-        self._safe_ip  = safe_ip
-
-    async def aresolution(self, hostname, default_port=None):
-        if hostname == self._hostname:
-            ip = self._safe_ip
-            try:
-                parsed_ip = ipaddress.ip_address(ip)
-                if isinstance(parsed_ip, ipaddress.IPv6Address):
-                    ip = f"[{ip}]"
-            except ValueError:
-                pass
-            return [(ip, default_port)]
-        # Fallback — should never be reached in normal operation
-        import socket
-        results = socket.getaddrinfo(hostname, default_port)
-        return [(r[4][0], r[4][1]) for r in results]
-
-    def resolution(self, hostname, default_port=None):
-        if hostname == self._hostname:
-            ip = self._safe_ip
-            try:
-                parsed_ip = ipaddress.ip_address(ip)
-                if isinstance(parsed_ip, ipaddress.IPv6Address):
-                    ip = f"[{ip}]"
-            except ValueError:
-                pass
-            return [(ip, default_port)]
-        import socket
-        results = socket.getaddrinfo(hostname, default_port)
-        return [(r[4][0], r[4][1]) for r in results]
+        return super().handle_request(new_request)
 
 
 # ══════════════════════════════════════════════════
@@ -248,8 +283,9 @@ def deliver_webhook(
 
     Security guarantees:
     - Re-resolves DNS at delivery time (TOCTOU fix)
-    - Connects to verified IP via custom transport (SNI fix)
-    - URL rebuilt via urlparse, not string replace (fragility fix)
+    - Connects to verified IP via URL rewriting (no private httpcore APIs)
+    - TLS SNI pinned to original hostname via custom SSL context
+    - URL rebuilt via urlparse, not string replace
     - Never follows redirects (open redirect fix)
     - Hard timeouts (slow-loris fix)
     - Payload signed with HMAC-SHA256
@@ -264,6 +300,7 @@ def deliver_webhook(
         parsed = urlparse(webhook_url)
         hostname = parsed.hostname
         scheme   = parsed.scheme.lower()
+        port     = parsed.port or _DEFAULT_PORTS.get(scheme, 443)
     except Exception as e:
         return _failure(start_time, f"URL parse error: {e}")
 
@@ -278,7 +315,8 @@ def deliver_webhook(
         )
 
     # ── 3. DNS rebinding check (TOCTOU fix) ───────
-    # Re-resolve and re-verify every single delivery attempt.
+    # Re-resolve and re-verify on every delivery attempt.
+    # DNS can change between attempts — each must be validated.
     try:
         safe_ip = _resolve_to_safe_ip(hostname)
     except SSRFDeliveryError as e:
@@ -286,7 +324,9 @@ def deliver_webhook(
 
     # ── 4. Sign the payload ───────────────────────
     try:
-        json_body, signature, timestamp = sign_webhook_payload(payload, secret = signing_secret)
+        json_body, signature, timestamp = sign_webhook_payload(
+            payload, secret=signing_secret
+        )
     except Exception as e:
         return _failure(start_time, f"Payload signing failed: {e}")
 
@@ -296,23 +336,25 @@ def deliver_webhook(
         "User-Agent":         "Lawhook-Webhook/1.0",
         SIGNATURE_HEADER:     signature,
         TIMESTAMP_HEADER:     timestamp,
-        "X-Lawhook-Attempt": str(attempt_number),
+        "X-Lawhook-Attempt":  str(attempt_number),
     }
 
     # ── 6. Deliver via SafeIPTransport ────────────
     #
-    # SafeIPTransport:
-    #   - Intercepts TCP and connects to safe_ip directly
-    #     (no second DNS lookup possible)
-    #   - Preserves original hostname in Host header
-    #     so TLS SNI handshake uses the domain name
-    #     and certificate validation passes
+    # SafeIPTransport v3:
+    #   - Rewrites URL to IP → httpcore connects directly, no DNS
+    #   - Pinned SSL context → SNI uses original hostname → cert validates
+    #   - Host header → original hostname → server routing works
     #
     # follow_redirects=False:
     #   - Any 3xx is treated as a potential open redirect attack
-    #   - We log it and fail — never follow
     try:
-        transport = SafeIPTransport(hostname=hostname, safe_ip=safe_ip)
+        transport = SafeIPTransport(
+            hostname=hostname,
+            safe_ip=safe_ip,
+            scheme=scheme,
+            port=port,
+        )
 
         with httpx.Client(
             transport=transport,
@@ -322,11 +364,10 @@ def deliver_webhook(
                 write=10.0,
                 pool=5.0,
             ),
-            follow_redirects=False,     # ← NEVER follow redirects
-            verify=(scheme == "https"), # ← Verify TLS certs on HTTPS
+            follow_redirects=False,
         ) as client:
             response = client.post(
-                webhook_url,            # ← Original URL with domain name
+                webhook_url,
                 content=json_body.encode("utf-8"),
                 headers=headers,
             )
@@ -349,7 +390,7 @@ def deliver_webhook(
             }
 
         # ── 2xx = success ─────────────────────────
-        success       = 200 <= response.status_code < 300
+        success = 200 <= response.status_code < 300
         try:
             response_body = response.content[:500].decode("utf-8", errors="replace")
         except Exception:
@@ -398,12 +439,12 @@ def get_next_retry_delay(attempt_count: int) -> int | None:
     Returns None when all retries are exhausted.
 
     Schedule:
-        After attempt 1 → 60s   (1 min)
-        After attempt 2 → 300s  (5 min)
-        After attempt 3 → 1800s (30 min)
-        After attempt 4 → 7200s (2 hrs)
-        After attempt 5 → 86400s(24 hrs)
-        After attempt 6 → None  (give up)
+        After attempt 1 → 60s    (1 min)
+        After attempt 2 → 300s   (5 min)
+        After attempt 3 → 1800s  (30 min)
+        After attempt 4 → 7200s  (2 hrs)
+        After attempt 5 → 86400s (24 hrs)
+        After attempt 6 → None   (give up)
     """
     if attempt_count >= len(RETRY_DELAYS):
         return None
