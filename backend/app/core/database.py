@@ -16,7 +16,7 @@ engine = create_engine(
     echo = False,  # Set to True for SQL query logging
 )
 
-SessionLocal = sessionmaker(
+SessionLocal = sessionmaker( # The factory 
     autocommit = False,
     autoflush = False,
     bind = engine

@@ -1,0 +1,67 @@
+{
+  "name": "lawhook",
+  "version": "0.1.0",
+  "description": "Official TypeScript/JavaScript SDK for the Lawhook Regulatory & Compliance Change Monitoring API",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "regulatory",
+    "compliance",
+    "kyc",
+    "aml",
+    "fintech",
+    "webhooks",
+    "monitoring",
+    "lawhook"
+  ],
+  "author": "Lawhook",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/muhyudheen/lawhook"
+  },
+  "homepage": "https://lawhook.dev",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.0",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "ts-jest": "^29.1.5",
+    "typescript": "^5.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [".ts"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    }
+  }
+}

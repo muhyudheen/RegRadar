@@ -1,0 +1,74 @@
+/* CTABanner — Linear.app final CTA: bold, spacious */
+
+.root {
+  position: relative;
+  background-color: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: var(--space-32) var(--space-8);
+  overflow: hidden;
+}
+
+.glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 800px;
+  height: 400px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(37, 99, 235, 0.03) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+/* Massive heading like Linear's final CTA */
+.headline {
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.04em;
+}
+
+.sub {
+  font-size: var(--text-md);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+  max-width: 440px;
+}
+
+.cta {
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .root {
+    padding: var(--space-20) var(--space-5);
+  }
+
+  .headline {
+    font-size: var(--text-3xl);
+  }
+
+  .glow {
+    width: 400px;
+    height: 260px;
+  }
+}

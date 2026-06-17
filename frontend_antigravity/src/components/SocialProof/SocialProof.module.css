@@ -1,0 +1,65 @@
+/* SocialProof — Minimal logo strip, no label */
+
+.root {
+  padding: var(--space-10) 0;
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-14);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-8);
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  opacity: 0.18;
+  transition: opacity var(--transition-instant);
+  cursor: default;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: -0.02em;
+}
+
+.logoCaps {
+  font-size: var(--text-sm);
+  letter-spacing: 0.15em;
+  font-weight: var(--weight-semibold);
+}
+
+.logo:hover {
+  opacity: 0.4;
+}
+
+.marqueeWrapper {
+  display: none;
+}
+
+.marqueeTrack {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+@media (max-width: 768px) {
+  .logoRow {
+    display: none;
+  }
+
+  .marqueeWrapper {
+    display: block;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+}

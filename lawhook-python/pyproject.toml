@@ -1,0 +1,65 @@
+# pyproject.toml
+# ─────────────────────────────────────────────────
+#  Lawhook Python SDK — Package Configuration
+#
+#  Build:   python -m build
+#  Publish: python -m twine upload dist/*
+#  Install (dev): pip install -e .
+# ─────────────────────────────────────────────────
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lawhook"
+version = "0.1.0"
+description = "Official Python SDK for the Lawhook Regulatory & Compliance Change Monitoring API"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Lawhook" }
+]
+keywords = [
+    "regulatory",
+    "compliance",
+    "kyc",
+    "aml",
+    "fintech",
+    "webhooks",
+    "monitoring",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business :: Financial",
+]
+
+dependencies = [
+    "httpx>=0.27,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-httpx>=0.30",
+    "build>=1.0",
+    "twine>=5.0",
+]
+
+[project.urls]
+Homepage      = "https://github.com/muhyudheen/Lawhook"
+Documentation = "https://github.com/muhyudheen/Lawhook#readme"
+Repository    = "https://github.com/muhyudheen/Lawhook"
+Issues        = "https://github.com/muhyudheen/Lawhook/issues"
+
+[tool.setuptools.packages.find]
+include = ["lawhook*"]
+exclude = ["tests*"]

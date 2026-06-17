@@ -293,10 +293,10 @@ def deliver_webhook(
     # ── 5. Build headers ──────────────────────────
     headers = {
         "Content-Type":       "application/json",
-        "User-Agent":         "RegRadar-Webhook/1.0",
+        "User-Agent":         "Lawhook-Webhook/1.0",
         SIGNATURE_HEADER:     signature,
         TIMESTAMP_HEADER:     timestamp,
-        "X-RegRadar-Attempt": str(attempt_number),
+        "X-Lawhook-Attempt": str(attempt_number),
     }
 
     # ── 6. Deliver via SafeIPTransport ────────────

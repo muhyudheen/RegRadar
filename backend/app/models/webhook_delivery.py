@@ -87,7 +87,7 @@ class WebhookDelivery(Base):
     # Stored so retries send identical payloads
     payload_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
  
-    # HMAC-SHA256 signature sent in X-RegRadar-Signature header
+    # HMAC-SHA256 signature sent in X-Lawhook-Signature header
     signature: Mapped[str | None] = mapped_column(String(100), nullable=True)
     
     # ── Timestamps ───────────────────────────────

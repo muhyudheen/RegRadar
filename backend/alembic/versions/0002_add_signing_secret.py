@@ -3,7 +3,7 @@ add signing secret to subscriptions
 
 Revision ID: 0002_add_signing_secret
 Revises: 0001_initial
-Create Date: 2024-06-03
+Create Date: 2026-06-03
 """
 
 from alembic import op

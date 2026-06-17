@@ -4,14 +4,14 @@
 #
 #  Two responsibilities:
 #
-#  1. OUTBOUND (RegRadar → Developer)
-#     RegRadar signs every outgoing webhook payload
+#  1. OUTBOUND (Lawhook → Developer)
+#     Lawhook signs every outgoing webhook payload
 #     with HMAC-SHA256 using WEBHOOK_SIGNING_SECRET.
-#     The signature is sent in X-RegRadar-Signature header.
+#     The signature is sent in X-Lawhook-Signature header.
 #
 #  2. INBOUND verification helper (for SDK / docs)
 #     Developers use verify_webhook_signature() in their
-#     own servers to confirm the webhook came from RegRadar.
+#     own servers to confirm the webhook came from Lawhook.
 #     We include this so we can document it clearly.
 #
 #  This file is used by:
@@ -27,11 +27,10 @@ import time
 from typing import Any
 
 # Configuration
-WEBHOOK_SIGNING_SECRET = os.getenv("WEBHOOK_SIGNING_SECRET", "")
 
-SIGNATURE_HEADER = "X-RegRadar-Signature"
+SIGNATURE_HEADER = "X-Lawhook-Signature"
 
-TIMESTAMP_HEADER = "X-RegRadar-Timestamp"
+TIMESTAMP_HEADER = "X-Lawhook-Timestamp"
 
 TIMESTAMP_TOLERANCE_SECONDS = 300 # 5 minutes
 
@@ -39,7 +38,7 @@ class WebhookSigningError(Exception):
     pass
 
 # ══════════════════════════════════════════════════
-#  OUTBOUND — RegRadar signs the payload
+#  OUTBOUND — Lawhook signs the payload
 # ══════════════════════════════════════════════════
 
 def sign_webhook_payload(payload: dict[str, Any], secret: str | None = None) -> tuple[str, str, str]:
@@ -74,13 +73,15 @@ def sign_webhook_payload(payload: dict[str, Any], secret: str | None = None) -> 
         response = httpx.post(webhook_url, content=json_body, headers=headers)
     """
     
-    signing_secret = secret or WEBHOOK_SIGNING_SECRET
+    
 
-    if not signing_secret:
+    if not secret:
         raise WebhookSigningError(
-            "No signing secret available. "
-            "Pass a per-subscription secret or set WEBHOOK_SIGNING_SECRET."
+            "Webhook signing secret is missing for this delivery. "
+            "This indicates an internal configuration error — "
+            "check that the subscription has a valid signing_secret."
         )
+    signing_secret = secret
         
     json_body = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     

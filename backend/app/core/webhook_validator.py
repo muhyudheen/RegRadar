@@ -128,7 +128,7 @@ def validate_webhook_url(url: str) -> str:
  
     Checks performed (in order):
         1. URL is a non-empty string
-        2. URL scheme is http or https only # change later to https only
+        2. URL scheme is https only 
         3. URL has a valid hostname
         4. Hostname is not in the blocked hostnames list
         5. If hostname is a raw IP — check against blocked ranges

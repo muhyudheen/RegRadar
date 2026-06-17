@@ -1,0 +1,103 @@
+/* ============================================
+   Lawhook Design System
+   Linear.app inspired — True black + grain
+   ============================================ */
+
+:root {
+  /* ── Surface / Backgrounds ── */
+  --bg:          #000000;
+  --bg-soft:     #050505;
+  --bg-raised:   #0a0a0a;
+  --bg-elevated: #111111;
+  --bg-surface:  #161616;
+  --border:      #ffffff0f;
+  --border-hover:#ffffff1a;
+  --border-subtle:#ffffff08;
+
+  /* ── Brand Colors ── */
+  --primary:     #2563EB;
+  --primary-hover:#3B82F6;
+  --primary-muted: rgba(37, 99, 235, 0.12);
+  --accent:      #38BDF8;
+  --accent-muted: rgba(56, 189, 248, 0.10);
+
+  /* ── Semantic Colors ── */
+  --success:     #10B981;
+  --success-muted: rgba(16, 185, 129, 0.10);
+  --warning:     #F59E0B;
+  --warning-muted: rgba(245, 158, 11, 0.10);
+  --danger:      #EF4444;
+  --danger-muted: rgba(239, 68, 68, 0.10);
+  --purple:      #8B5CF6;
+
+  /* ── Text — high contrast jumps ── */
+  --text:        #f0f0f0;
+  --text-secondary: #ababab;
+  --text-muted:  #777777;
+  --text-dim:    #444444;
+
+  /* ── Spacing — aggressive whitespace ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  40px;
+  --space-8:  48px;
+  --space-9:  56px;
+  --space-10: 64px;
+  --space-12: 80px;
+  --space-14: 96px;
+  --space-16: 120px;
+  --space-20: 160px;
+  --space-24: 200px;
+  --space-32: 260px;
+
+  /* ── Border Radius ── */
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+  --radius-xl:  12px;
+  --radius-2xl: 16px;
+  --radius-full:9999px;
+
+  /* ── Typography — big weight jumps ── */
+  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'Geist Mono', 'SF Mono', 'Fira Code', monospace;
+
+  --text-xs:   12px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-md:   16px;
+  --text-lg:   18px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+  --text-3xl:  32px;
+  --text-4xl:  40px;
+  --text-5xl:  48px;
+  --text-6xl:  56px;
+  --text-hero: 76px;
+
+  --leading-tight:  1.08;
+  --leading-snug:   1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed:1.7;
+
+  --weight-light:   300;
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold:600;
+  --weight-bold:    700;
+
+  /* ── Transitions — fast and precise ── */
+  --transition-instant: 100ms ease;
+  --transition-fast:    150ms ease;
+  --transition-base:    200ms ease;
+  --transition-smooth:  300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Layout ── */
+  --max-width:    1380px;
+  --content-width:1100px;
+  --navbar-height:52px;
+}

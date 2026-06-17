@@ -224,7 +224,7 @@ class BaseScraper(ABC):
             try:
                 page = browser.new_page()
                 page.set_extra_http_headers({
-                    "User-Agent": "RegRadar-Scraper/1.0 (compliance monitoring)"
+                    "User-Agent": "Lawhook-Scraper/1.0 (compliance monitoring)"
                 })
 
                 # S3 fix: intercept responses and abort if too large
@@ -271,7 +271,7 @@ class BaseScraper(ABC):
                 ),
                 follow_redirects=True,
                 max_redirects=MAX_REDIRECTS,
-                headers={"User-Agent": "RegRadar-Scraper/1.0 (compliance monitoring)"}, # change it to the upcoming original name
+                headers={"User-Agent": "Lawhook-Scraper/1.0 (compliance monitoring)"}, 
             )
         return cls._httpx_client
     

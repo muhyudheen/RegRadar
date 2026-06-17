@@ -105,7 +105,7 @@ class CreateSubscriptionResponse(SubscriptionResponse):
     description=(
         "Creates a new webhook subscription. "
         "The **signing_secret** is returned once only — store it immediately. "
-        "Use it to verify incoming webhooks are genuinely from RegRadar."
+        "Use it to verify incoming webhooks are genuinely from Lawhook."
     ),
 )
 def create_subscription(

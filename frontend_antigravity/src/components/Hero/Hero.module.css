@@ -1,0 +1,189 @@
+/* Hero — Linear.app fidelity: massive heading, thin body, lots of air */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16) var(--space-8) var(--space-24);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Very subtle primary glow — barely visible like Linear */
+.primaryGlow {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  width: 1600px;
+  height: 600px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(37, 99, 235, 0.04) 0%,
+    transparent 60%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+.accentGlow {
+  position: absolute;
+  top: 50%;
+  left: 58%;
+  width: 900px;
+  height: 400px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(56, 189, 248, 0.025) 0%,
+    transparent 55%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+/* Massive heading — weight 500 not 700, wider tracking like Linear */
+.headline {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5.8vw, var(--text-hero));
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: -0.05em;
+  line-height: var(--leading-tight);
+  max-width: 900px;
+}
+
+/* Body text is LIGHT weight — big contrast against heading */
+.subheadline {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+  max-width: 480px;
+  margin-top: var(--space-6);
+  letter-spacing: 0;
+}
+
+.ctas {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-10);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Code card — subtle, minimal */
+.codeCard {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--space-16);
+  max-width: 620px;
+  width: 100%;
+  background-color: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  animation: card-float 8s ease-in-out infinite;
+}
+
+@keyframes card-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.terminalBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotRed { composes: dot; background-color: #EF4444; opacity: 0.6; }
+.dotYellow { composes: dot; background-color: #F59E0B; opacity: 0.6; }
+.dotGreen { composes: dot; background-color: #10B981; opacity: 0.6; }
+
+.terminalTitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: var(--space-2);
+}
+
+.codeBlock {
+  padding: var(--space-5);
+  overflow-x: auto;
+}
+
+.codeBlock pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.8;
+  margin: 0;
+  white-space: pre;
+  color: var(--text-dim);
+}
+
+.jsonKey { color: #7aafc8; }
+.jsonString { color: #7dbfa6; }
+.jsonPunctuation { color: #3d3d3d; }
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 100px var(--space-5) var(--space-16);
+    min-height: auto;
+  }
+
+  .subheadline {
+    font-size: var(--text-md);
+  }
+
+  .ctas {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ctas a {
+    width: 100%;
+  }
+
+  .codeCard {
+    max-width: 100%;
+    margin-top: var(--space-12);
+  }
+
+  .codeBlock pre {
+    font-size: var(--text-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding-top: 80px;
+  }
+
+  .codeBlock pre {
+    font-size: 11px;
+  }
+}

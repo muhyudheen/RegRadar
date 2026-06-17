@@ -1,12 +1,12 @@
 #  API Key generation and verification utilities
 #
-#  Key format:  rr_live_<40 random hex chars>
-#  Example:     rr_live_a3f8c2d1e9b4f7a2c8d3e1f0b5a9c2d4e7f1a3b8
+#  Key format:  lh_live_<40 random hex chars>
+#  Example:     lh_live_a3f8c2d1e9b4f7a2c8d3e1f0b5a9c2d4e7f1a3b8
 
 import secrets 
 import hashlib
 
-KEY_PREFIX = "rr_live_"
+KEY_PREFIX = "lh_live_"
 KEY_RANDOM_BITS = 40
 PREFIX_SHOWN_LENGTH = 14
 
@@ -34,9 +34,9 @@ def hash_api_key(full_key: str) -> str:
  
     Called on every authenticated request:
         1. Developer sends key in Authorization header
-        2. We hash it here
-        3. We look up the hash in the database
-        4. If found and is_active=True → request is authenticated
+        2. hash here
+        3. look up for the hash in the database
+        4. found and is_active=True → request is authenticated
  
     Args:
         full_key: the raw key string from the request header
