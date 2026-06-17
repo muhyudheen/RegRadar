@@ -24,7 +24,7 @@ Requires Python 3.10+.
 ```python
 from lawhook import LawhookClient
 
-client = LawhookClient(api_key="rr_live_...")
+client = LawhookClient(api_key="lh_live_...")
 
 # Create a subscription
 sub = client.subscriptions.create(
@@ -174,7 +174,7 @@ For local development against your own deployment:
 
 ```python
 client = LawhookClient(
-    api_key="rr_live_...",
+    api_key="lh_live_...",
     base_url="http://127.0.0.1:8000",
 )
 ```
@@ -187,7 +187,7 @@ client = LawhookClient(
 application, or use it as a context manager:
 
 ```python
-with LawhookClient(api_key="rr_live_...") as client:
+with LawhookClient(api_key="lh_live_...") as client:
     page = client.changes.list()
     # connection automatically closed on exit
 ```

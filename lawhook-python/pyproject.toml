@@ -29,6 +29,7 @@ keywords = [
     "fintech",
     "webhooks",
     "monitoring",
+    "lawhook",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -55,10 +56,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage      = "https://github.com/muhyudheen/Lawhook"
-Documentation = "https://github.com/muhyudheen/Lawhook#readme"
-Repository    = "https://github.com/muhyudheen/Lawhook"
-Issues        = "https://github.com/muhyudheen/Lawhook/issues"
+Homepage      = "https://lawhook.dev"
+Documentation = "https://lawhook.dev/docs"
+Repository    = "https://github.com/muhyudheen/lawhook"
+Issues        = "https://github.com/muhyudheen/lawhook/issues"
 
 [tool.setuptools.packages.find]
 include = ["lawhook*"]
