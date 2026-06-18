@@ -7,9 +7,10 @@
 # ─────────────────────────────────────────────────
 
 from app.scrapers.rbi import RBIWhatsNewScraper
+from app.scrapers.sebi import SEBICircularsScraper
 
 # add new scrapers here as you build them
 
 ACTIVE_SCRAPERS = [
-    RBIWhatsNewScraper,
+    RBIWhatsNewScraper, SEBICircularsScraper
 ]
