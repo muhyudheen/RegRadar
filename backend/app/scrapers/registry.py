@@ -11,9 +11,10 @@ from app.scrapers.sebi import SEBICircularsScraper
 from app.scrapers.fca import FCAPublicationsScraper
 from app.scrapers.sec import SECRulemakingScraper
 from app.scrapers.mas import MASNewsScraper
+from app.scrapers.asic import ASICNewsScraper
 
 # add new scrapers here as you build them
 
 ACTIVE_SCRAPERS = [
-    RBIWhatsNewScraper, SEBICircularsScraper, SECRulemakingScraper, MASNewsScraper,# FCAPublicationsScraper,
+    RBIWhatsNewScraper, SEBICircularsScraper, SECRulemakingScraper, MASNewsScraper, ASICNewsScraper, #FCAPublicationsScraper
 ]
