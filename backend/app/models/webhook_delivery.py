@@ -11,7 +11,7 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import String, DateTime, Text, Integer, Boolean, ForeignKey, Index, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
 from app.models.base import Base
 
 class WebhookDelivery(Base):
@@ -31,7 +31,7 @@ class WebhookDelivery(Base):
     
     # Which subscription this is being delivered to
     subscription_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("subscriptions.id"), nullable=False, index=True
+        String(36), ForeignKey("subscriptions.id", ondelete="CASCADE"), nullable=False, index=True
     )
  
     # ── Delivery target ───────────────────────────
@@ -108,7 +108,7 @@ class WebhookDelivery(Base):
     # ── Relationships ─────────────────────────────
     
     change = relationship("Change", backref="webhook_deliveries")
-    subscription = relationship("Subscription", backref="webhook_deliveries")
+    subscription = relationship("Subscription", backref=backref("webhook_deliveries", passive_deletes=True))
  
     # ── Indexes ───────────────────────────────────
     __table_args__ = (

@@ -75,7 +75,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
 
         {/* ── Right actions ── */}
         <div className={styles.actions}>
-          <Link to="/api-key" className={`btn btn-primary ${styles.desktopCta}`}>
+          <Link to="/get-started" className={`btn btn-primary ${styles.desktopCta}`}>
             Get API Key
           </Link>
 
@@ -112,7 +112,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
               </Link>
             ))}
             <Link
-              to="/api-key"
+              to="/get-started"
               className={`btn btn-primary ${styles.mobileCta}`}
               onClick={closeMobile}
             >

@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 from app.api.v1.router import api_router
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+import logging
+
+logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(
     title="Lawhook API",
@@ -46,3 +51,8 @@ def root():
 @app.get('/health')
 def health():
     return {'status': 'ok', 'service': 'Lawhook API'}
+
+@app.exception_handler(RequestValidationError)
+async def validation_handler(request, exc):
+    logger.warning("422 on %s: %s", request.url.path, exc.errors())
+    return JSONResponse(status_code=422, content={"detail": exc.errors()})

@@ -1,0 +1,401 @@
+/* Pricing — true black, weight contrast, generous whitespace */
+
+/* ── Header ── */
+
+.header {
+  padding: var(--space-24) var(--space-8) var(--space-12);
+  text-align: center;
+}
+
+.headerContent {
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, var(--text-5xl));
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: -0.04em;
+  line-height: var(--leading-tight);
+}
+
+.subheadline {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+  margin-top: var(--space-4);
+}
+
+/* ── Toggle ── */
+
+.toggleWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+.toggle {
+  display: inline-flex;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 3px;
+}
+
+.toggleOption {
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+  transition: all var(--transition-instant);
+}
+
+.toggleOption:hover {
+  color: var(--text-secondary);
+}
+
+.toggleActive {
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.saveBadge {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--success);
+  padding: var(--space-1) var(--space-3);
+  background: var(--success-muted);
+  border-radius: var(--radius-full);
+}
+
+/* ── Cards Section ── */
+
+.cardsSection {
+  padding: 0 var(--space-8) var(--space-16);
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* ── Card ── */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-7);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  position: relative;
+  transition: border-color var(--transition-instant);
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+}
+
+.cardPopular {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 0 80px rgba(37, 99, 235, 0.06), 0 0 24px rgba(37, 99, 235, 0.03);
+}
+
+.cardPopular:hover {
+  border-color: rgba(37, 99, 235, 0.5);
+}
+
+.popularBadge {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px var(--space-4);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.tierName {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin-top: var(--space-5);
+}
+
+.price {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.period {
+  font-size: var(--text-base);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+}
+
+.descriptor {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+  margin-top: var(--space-3);
+}
+
+/* ── Differentiators (subscriptions & polling) ── */
+
+.differentiators {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: var(--bg-soft);
+  border-radius: var(--radius-lg);
+}
+
+.diffItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.diffValue {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+
+.diffLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-light);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--space-5) 0;
+}
+
+/* ── Feature list ── */
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-light);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.checkIcon {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── CTA button ── */
+
+.ctaButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px var(--space-5);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  margin-top: var(--space-7);
+  transition: all var(--transition-instant);
+}
+
+.ctaPrimary {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.ctaPrimary:hover {
+  opacity: 0.8;
+}
+
+.ctaGhost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.ctaGhost:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+}
+
+/* ── Comparison Table ── */
+
+.tableSection {
+  padding: var(--space-16) var(--space-8);
+  background: var(--bg-soft);
+}
+
+.tableContainer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.tableHeadline {
+  font-size: clamp(24px, 3vw, var(--text-3xl));
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.thFeature {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+}
+
+.thTier {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.thPopular {
+  color: var(--primary-hover);
+}
+
+.tdFeature {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-light);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.tdValue {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tdPopular {
+  color: var(--text-secondary);
+}
+
+.coverageCallout {
+  text-align: center;
+  font-size: var(--text-base);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+  margin-top: var(--space-10);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 1100px) {
+  .cardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-20) var(--space-5) var(--space-10);
+  }
+
+  .cardsSection {
+    padding: 0 var(--space-5) var(--space-14);
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+
+  .tableSection {
+    padding: var(--space-14) var(--space-5);
+  }
+
+  .thFeature,
+  .tdFeature {
+    position: sticky;
+    left: 0;
+    background: var(--bg-soft);
+    z-index: 1;
+  }
+
+  .toggleWrapper {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding-top: var(--space-16);
+  }
+
+  .headline {
+    font-size: var(--text-3xl);
+  }
+
+  .price {
+    font-size: var(--text-3xl);
+  }
+}

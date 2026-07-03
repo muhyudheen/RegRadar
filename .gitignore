@@ -15,3 +15,11 @@ redis_data/
 .DS_Store
 Thumbs.db
 celerybeat-schedule
+
+# Python environments
+venv/
+*/venv/
+lawhook-python/venv/
+
+# Claude code local
+.claude

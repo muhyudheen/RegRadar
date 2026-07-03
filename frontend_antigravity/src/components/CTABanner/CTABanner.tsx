@@ -25,11 +25,11 @@ function CTABanner() {
         </h2>
 
         <p className={styles.sub}>
-          Free tier includes 500 API calls per month and 2 active subscriptions.
-          No credit card required.
+          Free tier includes 1 subscription · 1,000 requests/day · no credit
+          card required.
         </p>
 
-        <Link to="/dashboard" className={`btn btn-primary btn-lg ${styles.cta}`}>
+        <Link to="/get-started" className={`btn btn-primary btn-lg ${styles.cta}`}>
           Get Your API Key
           <ArrowRight size={16} />
         </Link>

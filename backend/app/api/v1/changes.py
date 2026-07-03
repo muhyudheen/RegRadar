@@ -20,10 +20,11 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
  
 from app.core.database import get_db
-from app.dependencies.auth import get_current_api_key
+from app.dependencies.auth import get_current_user_flexible
 from app.models.api_key import APIKey
 from app.models.change import Change
 from app.models.subscription import Subscription
+from app.models.user import User
  
 router = APIRouter()
 
@@ -59,18 +60,23 @@ class PaginatedChangesResponse(BaseModel):
 # ─────────────── Helper Functions ───────────────────────
 
 def _get_subscribed_pairs(
-    api_key: APIKey,
+    user: User,
     db: Session,
 ) -> list[tuple[str, str]]:
     """
-    Returns list of (jurisdiction, industry) pairs
-    that this API key is subscribed to.
-    Developers can only see changes for their subscriptions.
+    Returns the list of (jurisdiction, industry) pairs the USER is
+    subscribed to, pooled across all of their keys. A user only sees
+    changes matching their own subscriptions.
     """
-    subs = db.query(Subscription).filter(
-        Subscription.api_key_id == api_key.id,
-        Subscription.is_active == True,
-    ).all()
+    subs = (
+        db.query(Subscription)
+        .join(APIKey, Subscription.api_key_id == APIKey.id)
+        .filter(
+            APIKey.user_id == user.id,
+            Subscription.is_active == True,  # noqa: E712
+        )
+        .all()
+    )
     return [(sub.jurisdiction, sub.industry) for sub in subs]
 
 def base_changes_query(
@@ -109,12 +115,12 @@ def list_changes(
     jurisdiction: str    | None = Query(default=None, description="Filter by jurisdiction e.g. IN"),
     industry:     str    | None = Query(default=None, description="Filter by industry e.g. fintech"),
     severity:     str    | None = Query(default=None, description="Filter by severity: critical, major, minor"),
-    api_key: APIKey      = Depends(get_current_api_key),
+    current_user: User   = Depends(get_current_user_flexible),
     db: Session          = Depends(get_db),
 ):
-    pairs = _get_subscribed_pairs(api_key, db)
+    pairs = _get_subscribed_pairs(current_user, db)
     query = base_changes_query(db, pairs)
-    
+
     if jurisdiction:
         query = query.filter(Change.jurisdiction == jurisdiction.upper().strip())
     if industry:
@@ -153,12 +159,12 @@ def search_changes(
     q:      str  = Query(..., min_length=2, max_length=200, description="Search query"),
     page:   int  = Query(default=1, ge=1),
     limit:  int  = Query(default=20, ge=1, le=100),
-    api_key: APIKey  = Depends(get_current_api_key),
+    current_user: User  = Depends(get_current_user_flexible),
     db: Session      = Depends(get_db),
 ):
-    pairs = _get_subscribed_pairs(api_key, db)
+    pairs = _get_subscribed_pairs(current_user, db)
     query = base_changes_query(db, pairs)
-    
+
     search_term = f"%{q.strip()}%"
     query = query.filter(
         or_(
@@ -191,18 +197,18 @@ def search_changes(
 )
 def get_change(
     change_id: str,
-    api_key: APIKey  = Depends(get_current_api_key),
+    current_user: User  = Depends(get_current_user_flexible),
     db: Session      = Depends(get_db),
 ):
     """
     Returns full detail for a single change including
     AI-generated summary, severity, and structured diff.
- 
+
     Returns 404 if the change does not exist or does not
-    match any of your active subscriptions — never reveals
-    whether a change exists for a different API key.
+    match any of the user's active subscriptions — never reveals
+    whether a change exists for a different user.
     """
-    pairs = _get_subscribed_pairs(api_key, db)
+    pairs = _get_subscribed_pairs(current_user, db)
     
     if not pairs:
         raise HTTPException(

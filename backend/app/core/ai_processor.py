@@ -32,11 +32,11 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY","")
 
 ANTHRO_MODEL = "anthropic/claude-haiku-4.5"
 OPENAI_MODEL = "openai/gpt-4o-mini"
-GOOGLE_MODEL = "gemini-2.5-pro"
+GOOGLE_MODEL = "gemini-2.5-flash"
 
 MAX_INPUT_CHARS = 8000
 
-MAX_TOKENS = 1000
+MAX_TOKENS = 4000
 
 VALID_SEVERITIES = {"critical", "major", "minor"}
 
@@ -81,8 +81,8 @@ def process_change(
         return AIError("No AI API key configured")
     
     client = openai.OpenAI(
-    api_key=os.getenv("ANTHROPIC_API_KEY"),   # your OpenRouter key
-    base_url="https://openrouter.ai/api/v1",
+    api_key=os.getenv("GOOGLE_API_KEY"),   # your Google API key
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
 )
  
     
@@ -99,7 +99,7 @@ def process_change(
     # ----------API Call----------
     try:
         response = client.chat.completions.create(
-        model=ANTHRO_MODEL,
+        model=GOOGLE_MODEL,
         max_tokens=MAX_TOKENS,
         messages=[{"role": "user", "content": prompt}]
     )

@@ -23,8 +23,9 @@
 #
 #  Tiers (set on api_keys.tier, default "free"):
 #    free       —    60 req/min,     1,000 req/day
-#    pro        —   600 req/min,    50,000 req/day
-#    enterprise — 6,000 req/min, 1,000,000 req/day
+#    starter    —   600 req/min,    50,000 req/day
+#    pro        — 6,000 req/min, 1,000,000 req/day
+#    enterprise — 20,000 req/min, 5,000,000 req/day
 #
 #  No billing/upgrade endpoint yet — tier is set manually:
 #    UPDATE api_keys SET tier = 'pro' WHERE id = '...';
@@ -41,18 +42,27 @@ import redis
 logger = logging.getLogger(__name__)
 
 # ── Tier limits (override defaults via env if needed) ─
+#  Tiers match the pricing page (free / starter / pro / enterprise):
+#    free       —    60 req/min,     1,000 req/day
+#    starter    —   600 req/min,    50,000 req/day
+#    pro        — 6,000 req/min, 1,000,000 req/day
+#    enterprise — 20,000 req/min, 5,000,000 req/day  (top band)
 TIER_LIMITS: dict[str, dict[str, int]] = {
     "free": {
         "minute": int(os.getenv("RATE_LIMIT_FREE_PER_MINUTE", "60")),
         "day":    int(os.getenv("RATE_LIMIT_FREE_PER_DAY", "1000")),
     },
+    "starter": {
+        "minute": int(os.getenv("RATE_LIMIT_STARTER_PER_MINUTE", "600")),
+        "day":    int(os.getenv("RATE_LIMIT_STARTER_PER_DAY", "50000")),
+    },
     "pro": {
-        "minute": int(os.getenv("RATE_LIMIT_PRO_PER_MINUTE", "600")),
-        "day":    int(os.getenv("RATE_LIMIT_PRO_PER_DAY", "50000")),
+        "minute": int(os.getenv("RATE_LIMIT_PRO_PER_MINUTE", "6000")),
+        "day":    int(os.getenv("RATE_LIMIT_PRO_PER_DAY", "1000000")),
     },
     "enterprise": {
-        "minute": int(os.getenv("RATE_LIMIT_ENTERPRISE_PER_MINUTE", "6000")),
-        "day":    int(os.getenv("RATE_LIMIT_ENTERPRISE_PER_DAY", "1000000")),
+        "minute": int(os.getenv("RATE_LIMIT_ENTERPRISE_PER_MINUTE", "20000")),
+        "day":    int(os.getenv("RATE_LIMIT_ENTERPRISE_PER_DAY", "5000000")),
     },
 }
  
@@ -95,13 +105,17 @@ class RateLimitCheck:
     
 def check_rate_limit(
     redis_client: redis.Redis,
-    key_hash: str,
+    identity: str,
     tier: str = DEFAULT_TIER,
 ) -> RateLimitCheck:
     """
     Check and record a request against rate limits for the
     given tier. Always checks BOTH the minute and day windows
     so callers have full visibility regardless of outcome.
+
+    `identity` is the bucket discriminator — the USER id, so all of
+    a user's keys share one pooled quota. (For unidentifiable tokens
+    the middleware falls back to the token hash.)
  
     Unknown tiers fall back to DEFAULT_TIER limits — this
     fails safe (most restrictive) rather than failing open
@@ -121,20 +135,20 @@ def check_rate_limit(
     # Checking minute window first
     minute_result = _check_window(
         redis_client=redis_client,
-        key_hash=key_hash,
+        identity=identity,
         window_ms=WINDOW_MINUTE_MS,
         limit=limits["minute"],
         window_name="minute",
         now_ms=now_ms,
     )
-    
+
     if not minute_result.allowed:
         # Blocked by minute window — PEEK day window for
         # reporting only. Do not increment: a blocked
         # request shouldn't consume a day-quota slot.
         day_result = _peek_window(
             redis_client=redis_client,
-            key_hash=key_hash,
+            identity=identity,
             window_ms=WINDOW_DAY_MS,
             limit=limits["day"],
             window_name="day",
@@ -151,11 +165,11 @@ def check_rate_limit(
     # Minute allowed - check + increment day window
     day_result = _check_window(
         redis_client=redis_client,
-        key_hash=key_hash,
+        identity=identity,
         window_ms=WINDOW_DAY_MS,
         limit=limits["day"],
         window_name="day",
-        now_ms=now_ms,   
+        now_ms=now_ms,
     )
     
     return RateLimitCheck(
@@ -168,7 +182,7 @@ def check_rate_limit(
 
 def _check_window(
     redis_client: redis.Redis,
-    key_hash:    str,
+    identity:    str,
     window_ms:   int,
     limit:       int,
     window_name: str,
@@ -179,7 +193,7 @@ def _check_window(
     Atomic via Lua script — check + increment, no race
     conditions. If over limit, does NOT add an entry.
     """
-    redis_key     = f"rl:{window_name}:{key_hash}"
+    redis_key     = f"rl:{window_name}:{identity}"
     window_start  = now_ms - window_ms
     request_id    = str(uuid.uuid4())
     
@@ -259,7 +273,7 @@ def _check_window(
         
 def _peek_window(
     redis_client: redis.Redis,
-    key_hash:    str,
+    identity:    str,
     window_ms:   int,
     limit:       int,
     window_name: str,
@@ -270,11 +284,11 @@ def _peek_window(
     record a new entry. Used for header reporting on the
     window that did not cause a block (e.g. reporting day
     stats when the request was blocked by the minute window).
- 
+
     Trims expired entries (cheap maintenance, same as
     _check_window) but never calls ZADD.
     """
-    redis_key = f"rl:{window_name}:{key_hash}"
+    redis_key = f"rl:{window_name}:{identity}"
     window_start = now_ms - window_ms
     
     # KEYS[1] = redis_key

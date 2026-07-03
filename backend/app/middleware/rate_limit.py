@@ -109,13 +109,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Hash the token — never store raw keys in Redis
         key_hash = hashlib.sha256(raw_token.encode()).hexdigest()
 
-        # ── Resolve tier ───────────────────────────
-        tier = self._get_tier(key_hash)
+        # ── Resolve pooled identity + tier ─────────
+        # identity = owning user id (pools all the user's keys); tier
+        # = the user's tier. Unknown tokens fall back to (hash, free).
+        identity, tier = self._resolve_principal(key_hash)
 
         # ── Check rate limit (both windows) ───────
         check = check_rate_limit(
             redis_client=self.redis_client,
-            key_hash=key_hash,
+            identity=identity,
             tier=tier,
         )
 
@@ -170,30 +172,36 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response.headers["X-RateLimit-Remaining-Day"] = str(check.day.remaining)
         response.headers["X-RateLimit-Reset-Day"]     = str(check.day.reset_at_ms // 1000)
 
-    # ── Tier lookup ────────────────────────────────
+    # ── Principal (user) + tier lookup ─────────────
 
-    def _get_tier(self, key_hash: str) -> str:
+    def _resolve_principal(self, key_hash: str) -> tuple[str, str]:
         """
-        Resolve the rate-limit tier for a key hash.
+        Resolve (bucket_identity, tier) for a bearer token hash.
 
-        Checks Redis cache first (fast path, no DB hit on
-        most requests). On cache miss, queries api_keys
-        and caches the result for TIER_CACHE_TTL_SECONDS.
+        For a valid API key: identity = the owning USER's id, so all
+        of that user's keys pool into one shared quota; tier = the
+        user's tier (inherited by every key).
 
-        Returns DEFAULT_TIER if the key doesn't exist —
-        the rate limiter still needs a value to check
-        against; the actual 401 for invalid keys is
-        handled by the auth dependency, not here.
+        For anything else — an unknown key, or a JWT dashboard token
+        that isn't an API key — identity = the token hash itself and
+        tier = DEFAULT_TIER. Those bucket individually at the free
+        tier; the real 401 for invalid keys is handled by the auth
+        dependency, not here.
+
+        Cached in Redis for TIER_CACHE_TTL_SECONDS. Tier/ownership
+        changes take effect within that TTL.
         """
-        cache_key = f"tier:{key_hash}"
+        cache_key = f"princ:{key_hash}"
 
         try:
             cached = self.redis_client.get(cache_key)
             if cached:
-                return cached
+                data = json.loads(cached)
+                return data["identity"], data["tier"]
         except Exception as e:
-            logger.error(f"Tier cache read error: {e}")
+            logger.error(f"Principal cache read error: {e}")
 
+        identity = key_hash
         tier = DEFAULT_TIER
 
         db = SessionLocal()
@@ -203,16 +211,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 .filter(APIKey.key_hash == key_hash)
                 .first()
             )
-            if api_key is not None:
-                tier = api_key.tier
+            if api_key is not None and api_key.user is not None:
+                identity = api_key.user_id
+                tier = api_key.user.tier
         except Exception as e:
-            logger.error(f"Tier DB lookup error: {e} — using default tier")
+            logger.error(f"Principal DB lookup error: {e} — using default tier")
         finally:
             db.close()
 
         try:
-            self.redis_client.set(cache_key, tier, ex=TIER_CACHE_TTL_SECONDS)
+            self.redis_client.set(
+                cache_key,
+                json.dumps({"identity": identity, "tier": tier}),
+                ex=TIER_CACHE_TTL_SECONDS,
+            )
         except Exception as e:
-            logger.error(f"Tier cache write error: {e}")
+            logger.error(f"Principal cache write error: {e}")
 
-        return tier
+        return identity, tier
