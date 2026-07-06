@@ -41,7 +41,7 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   text-decoration: none;
   color: var(--text);
   flex-shrink: 0;
@@ -49,15 +49,15 @@
 
 .logoIcon {
   color: var(--text);
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
   opacity: 0.9;
 }
 
 .logoText {
   font-family: var(--font-display);
   font-weight: var(--weight-medium);
-  font-size: var(--text-base);
+  font-size: var(--text-xl);
   letter-spacing: -0.01em;
 }
 
@@ -68,7 +68,7 @@
 }
 
 .navLink {
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   color: var(--text-muted);
   text-decoration: none;
   transition: color var(--transition-instant);

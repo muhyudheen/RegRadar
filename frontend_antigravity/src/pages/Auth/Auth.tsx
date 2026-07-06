@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Radar, ArrowRight, Mail, Lock } from 'lucide-react';
+import { ArrowRight, Mail, Lock } from 'lucide-react';
+import Logo from '../../components/Logo/Logo';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext';
 import { errorMessage } from '../../lib/apiClient';
@@ -63,7 +64,7 @@ export default function Auth({ mode }: { mode: 'login' | 'signup' }) {
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       >
         <Link to="/" className={styles.brand} aria-label="Lawhook home">
-          <Radar className={styles.brandIcon} />
+          <Logo className={styles.brandIcon} />
           <span className={styles.brandText}>Lawhook</span>
         </Link>
 

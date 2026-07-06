@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Radar, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import Logo from '../Logo/Logo';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './Navbar.module.css';
 
@@ -60,7 +61,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
       <div className={styles.inner}>
         {/* ── Logo ── */}
         <Link to="/" className={styles.logo} aria-label="Lawhook home">
-          <Radar className={styles.logoIcon} />
+          <Logo className={styles.logoIcon} />
           <span className={styles.logoText}>Lawhook</span>
         </Link>
 

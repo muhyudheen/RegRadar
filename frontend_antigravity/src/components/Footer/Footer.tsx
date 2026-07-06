@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Radar } from 'lucide-react';
+import Logo from '../Logo/Logo';
 import styles from './Footer.module.css';
 
 /** Single footer link definition */
@@ -59,7 +59,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className={styles.brand}>
             <Link to="/" className={styles.logo} aria-label="Lawhook home">
-              <Radar className={styles.logoIcon} />
+              <Logo className={styles.logoIcon} />
               <span className={styles.logoText}>Lawhook</span>
             </Link>
             <p className={styles.brandDesc}>

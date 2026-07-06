@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Radar, LayoutDashboard, Webhook, Activity, KeyRound, LogOut } from 'lucide-react';
+import { LayoutDashboard, Webhook, Activity, KeyRound, LogOut } from 'lucide-react';
+import Logo from '../Logo/Logo';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../lib/AuthContext';
 import AuthGate from './AuthGate';
@@ -36,7 +37,7 @@ function Shell() {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <NavLink to="/" className={styles.brand} aria-label="Lawhook home">
-            <Radar className={styles.brandIcon} />
+            <Logo className={styles.brandIcon} />
             <span className={styles.brandText}>Lawhook</span>
           </NavLink>
 
