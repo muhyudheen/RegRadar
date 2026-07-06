@@ -11,6 +11,7 @@
 import ipaddress
 import socket
 from urllib.parse import urlparse
+import os
 
 from fastapi import HTTPException, status
 
@@ -73,7 +74,8 @@ BLOCKED_HOSTNAMES = {
 
 # ── Blocked URL schemes ───────────────────────────
 # Only https is allowed in production.
-ALLOWED_SCHEMES = {"https", "http"}   # Change to {"https"} in production
+_IS_PROD = os.environ.get("ENVIRONMENT") == "production"
+ALLOWED_SCHEMES = {"https"} if _IS_PROD else {"https", "http"}   
 
 class WebHookURLError(Exception):
     """Raised when a webhook URL fails SSRF validation."""
