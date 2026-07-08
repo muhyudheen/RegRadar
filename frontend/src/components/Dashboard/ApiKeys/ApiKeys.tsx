@@ -144,12 +144,12 @@ export default function ApiKeys() {
                       <span className={styles.name}>{k.name}</span>
                       {err && <span className={styles.rowError}>{err}</span>}
                     </td>
-                    <td className={styles.td}>
+                    <td className={styles.td} data-label="Key">
                       <span className={styles.keyMask}>{k.key_prefix}…</span>
                     </td>
-                    <td className={styles.td}>{formatDate(k.created_at)}</td>
-                    <td className={styles.td}>{formatLastUsed(k.last_used_at)}</td>
-                    <td className={styles.td}>
+                    <td className={styles.td} data-label="Created">{formatDate(k.created_at)}</td>
+                    <td className={styles.td} data-label="Last used">{formatLastUsed(k.last_used_at)}</td>
+                    <td className={styles.td} data-label="Status">
                       {k.is_active ? (
                         <span className={`${styles.statusBadge} ${styles.statusActive}`}>Active</span>
                       ) : (

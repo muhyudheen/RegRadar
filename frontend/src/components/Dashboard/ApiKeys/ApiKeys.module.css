@@ -408,4 +408,85 @@
   .slideover {
     max-width: 100%;
   }
+
+  /* ── Table → stacked cards ── */
+  .tableWrapper {
+    overflow-x: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+
+  .table {
+    min-width: 0;
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .row,
+  .row:hover {
+    display: block;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .row:not(:last-child) .td,
+  .row:not(:last-child) .tdRight {
+    border-bottom: none;
+  }
+
+  .td,
+  .tdRight {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-2) 0;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .td[data-label]::before {
+    content: attr(data-label);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Name cell = card header (no label) */
+  .row .td:first-child {
+    display: block;
+    padding-top: 0;
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  /* Revoke button = footer, right-aligned */
+  .tdRight {
+    justify-content: flex-end;
+    padding-top: var(--space-3);
+    margin-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .iconBtn {
+    width: 40px;
+    height: 40px;
+  }
 }

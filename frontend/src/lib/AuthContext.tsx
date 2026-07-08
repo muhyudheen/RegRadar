@@ -17,8 +17,18 @@ import {
   type Me,
 } from './apiClient';
 
+const TOKEN_KEY = 'lawhook_token';
+
+function readStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
 interface AuthContextValue {
-  /** JWT session token — in memory only (never localStorage, per project policy). */
+  /** JWT session token — persisted in localStorage so reloads keep the session. */
   token: string | null;
   /** Minimal user info from login/signup. */
   user: AuthUser | null;
@@ -38,11 +48,25 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
+  // Rehydrate from localStorage so a page reload keeps the session.
+  const [token, setToken] = useState<string | null>(() => readStoredToken());
   const [user, setUser] = useState<AuthUser | null>(null);
   const [me, setMe] = useState<Me | null>(null);
   const [meLoading, setMeLoading] = useState(false);
   const [meError, setMeError] = useState<string | null>(null);
+
+  // Keep localStorage in sync with the in-memory token. This one effect covers
+  // every path that changes it: login/signup (store), logout + 401 self-clear
+  // (remove). An expired stored token simply 401s on the first authed call and
+  // the client's onUnauthorized clears it below.
+  useEffect(() => {
+    try {
+      if (token) localStorage.setItem(TOKEN_KEY, token);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      /* storage unavailable (private mode etc.) — session stays in memory */
+    }
+  }, [token]);
 
   // On any 401 the client clears the session — same self-healing as before.
   const client = useMemo<ApiClient | null>(() => {

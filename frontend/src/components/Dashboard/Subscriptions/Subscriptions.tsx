@@ -256,15 +256,15 @@ function SubscriptionTable({
                     {err && <span className={styles.rowError}>{err}</span>}
                   </div>
                 </td>
-                <td className={styles.td}>
+                <td className={styles.td} data-label="Jurisdiction">
                   <span className={styles.chip}>{sub.jurisdiction}</span>
                 </td>
-                <td className={styles.td}>{sub.industry}</td>
-                <td className={styles.td}>
+                <td className={styles.td} data-label="Industry">{sub.industry}</td>
+                <td className={styles.td} data-label="Severity">
                   <SeverityBadge level={sub.severity_min} />
                 </td>
-                <td className={styles.td}>{formatDate(sub.created_at)}</td>
-                <td className={styles.tdCenter}>
+                <td className={styles.td} data-label="Created">{formatDate(sub.created_at)}</td>
+                <td className={styles.tdCenter} data-label="Active">
                   <button
                     type="button"
                     className={`${styles.toggle} ${sub.is_active ? styles.toggleOn : ''}`}

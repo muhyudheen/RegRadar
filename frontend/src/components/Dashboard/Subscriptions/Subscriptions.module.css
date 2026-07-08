@@ -674,4 +674,108 @@
   .slideover {
     max-width: 100%;
   }
+
+  /* ── Table → stacked cards ── */
+  .tableWrapper {
+    overflow-x: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+
+  .table {
+    min-width: 0;
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .row,
+  .row:hover {
+    display: block;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  /* Kill the desktop inter-cell borders inside the card */
+  .row:not(:last-child) .td,
+  .row:not(:last-child) .tdCenter,
+  .row:not(:last-child) .tdRight {
+    border-bottom: none;
+  }
+
+  .td,
+  .tdCenter,
+  .tdRight {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-2) 0;
+    text-align: right;
+  }
+
+  /* Label:value rows get their column name via data-label */
+  .td[data-label]::before,
+  .tdCenter[data-label]::before {
+    content: attr(data-label);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Name cell = card header (no label), stacked full width */
+  .row .td:first-child {
+    display: block;
+    padding-top: 0;
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .webhook {
+    max-width: 100%;
+  }
+
+  /* Actions row = footer, right-aligned, no label */
+  .tdRight {
+    justify-content: flex-end;
+    padding-top: var(--space-3);
+    margin-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  /* Comfortable touch targets */
+  .iconBtn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .toggle {
+    width: 40px;
+    height: 24px;
+  }
+
+  .toggleHandle {
+    width: 18px;
+    height: 18px;
+  }
+
+  .toggleOn .toggleHandle {
+    transform: translateX(16px);
+  }
 }

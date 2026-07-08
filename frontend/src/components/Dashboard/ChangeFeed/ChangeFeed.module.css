@@ -563,4 +563,20 @@
   .detectedAt {
     margin-left: 0;
   }
+
+  /* Search takes its own row; the two filters split the next row evenly. */
+  .searchBox {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Comfortable tap target for opening a change */
+  .row {
+    padding: var(--space-4);
+  }
 }
