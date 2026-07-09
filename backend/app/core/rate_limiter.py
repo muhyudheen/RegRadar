@@ -65,8 +65,16 @@ TIER_LIMITS: dict[str, dict[str, int]] = {
         "day":    int(os.getenv("RATE_LIMIT_ENTERPRISE_PER_DAY", "5000000")),
     },
 }
+
+TIER_CADENCE_SECONDS: dict[str, int] = {
+    'free': int(os.getenv("FREE_CADENCE_SECONDS", 24 * 60 * 60)),
+    'starter': int(os.getenv("STARTER_CADENCE_SECONDS", 6 * 60 * 60)),
+    'pro': int(os.getenv("PRO_CADENCE_SECONDS", 1 *60 * 60)),
+    'enterprise': int(os.getenv("ENTERPRISE_CADENCE_SECONDS",  15 * 60)),
+}
  
 DEFAULT_TIER = "free"
+DEFAULT_CADENCE_SECONDS = TIER_CADENCE_SECONDS['free'] # 1 day
  
 # ── Window sizes in milliseconds ──────────────────
 WINDOW_MINUTE_MS = 60 * 1000

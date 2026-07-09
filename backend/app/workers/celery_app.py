@@ -8,7 +8,8 @@ celery_app = Celery(
     include=[
         "app.workers.scraper_tasks",
         "app.workers.ai_tasks",
-        "app.workers.webhook_tasks"
+        "app.workers.webhook_tasks",
+        "app.workers.scheduler",
     ]
 )
 
@@ -20,8 +21,8 @@ celery_app.conf.update(
     enable_utc=True,
     # Beat schedule — scraper runs every 15 minutes
     beat_schedule={# Run all scrapers every 15 minutes
-        "run-all-scrapers": {
-            "task": "scraper.run_all",
+        "demand-driven-scheduler-tick": {
+            "task": "scheduler.tick",
             "schedule": 900.0,          # 900 seconds = 15 minutes
         },
     },  
