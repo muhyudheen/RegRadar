@@ -214,8 +214,6 @@ class ASICNewsScraper(BaseScraper):
         separator = "=" * 60
         header = (
             "ASIC Newsroom Monitor — Snapshot\n"
-            f"Items: {len(lines)} | "
-            f"Scraped: {scraped_at.strftime('%Y-%m-%d %H:%M UTC')}\n"
             f"{separator}\n"
         )
         plain_text = header + "\n\n".join(lines)

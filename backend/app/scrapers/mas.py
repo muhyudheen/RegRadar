@@ -125,8 +125,6 @@ class MASNewsScraper(BaseScraper):
         separator = "=" * 60
         header = (
             "MAS Regulatory Monitor — Multi-Source Snapshot\n"
-            f"Sources active: {len(sections)}/{len(SOURCES)} | "
-            f"Scraped: {scraped_at.strftime('%Y-%m-%d %H:%M UTC')}\n"
             f"{separator}\n"
         )
         plain_text = header + "\n\n".join(sections)

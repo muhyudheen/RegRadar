@@ -168,8 +168,6 @@ class SECRulemakingScraper(BaseScraper):
         separator = "=" * 60
         header = (
             "SEC Regulatory Monitor — Multi-Source Snapshot\n"
-            f"Sources active: {len(sections)}/3 | "
-            f"Scraped: {scraped_at.strftime('%Y-%m-%d %H:%M UTC')}\n"
             f"{separator}\n"
         )
         plain_text = header + "\n\n".join(sections)
