@@ -101,7 +101,15 @@ def process_change(
         response = client.chat.completions.create(
         model=GOOGLE_MODEL,
         max_tokens=MAX_TOKENS,
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
+        response_format = {'type': 'json_object'},
+        extra_body={
+                "extra_body": {
+                    "google": {
+                        "thinking_config": {"thinking_budget": 0}
+                    }
+                }
+            },
     )
         raw_response = response.choices[0].message.content or ""
         return _parse_response(raw_response)
