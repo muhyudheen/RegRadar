@@ -278,28 +278,6 @@
   color: var(--text-muted);
 }
 
-/* ── Status badge ── */
-
-.statusBadge {
-  display: inline-block;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.statusActive {
-  color: var(--success);
-  background: var(--success-muted);
-}
-
-.statusRevoked {
-  color: var(--text-muted);
-  background: var(--bg-elevated);
-}
-
 /* ── Overlays (reused pattern from Subscriptions) ── */
 
 .overlay,

@@ -12,7 +12,9 @@ interface NavItem {
 }
 
 const NAV_LINKS: NavItem[] = [
-  { label: 'Features', to: '/features' },
+  // Router link to the home features section; a hash-scroll effect in App
+  // handles the actual smooth scroll (same-page and cross-page).
+  { label: 'Features', to: '/#features' },
   { label: 'Pricing', to: '/pricing' },
   { label: 'Docs', to: '/docs' },
 ];
@@ -68,7 +70,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
         {/* ── Desktop links ── */}
         <div className={styles.navLinks}>
           {NAV_LINKS.map((item) => (
-            <Link key={item.to} to={item.to} className={styles.navLink}>
+            <Link key={item.label} to={item.to} className={styles.navLink}>
               {item.label}
             </Link>
           ))}
@@ -104,7 +106,7 @@ export default function Navbar({ transparent = false }: NavbarProps) {
           >
             {NAV_LINKS.map((item) => (
               <Link
-                key={item.to}
+                key={item.label}
                 to={item.to}
                 className={styles.mobileLink}
                 onClick={closeMobile}

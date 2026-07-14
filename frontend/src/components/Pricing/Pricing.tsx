@@ -64,7 +64,7 @@ const TIERS: Tier[] = [
       'Webhook delivery',
       'Email support',
     ],
-    cta: 'Start free trial',
+    cta: 'Start free',
     ctaTo: '/get-started',
   },
   {
@@ -85,7 +85,7 @@ const TIERS: Tier[] = [
       'Priority support',
       '99.9% uptime SLA',
     ],
-    cta: 'Start free trial',
+    cta: 'Start free',
     ctaTo: '/get-started',
     popular: true,
   },
@@ -107,8 +107,8 @@ const TIERS: Tier[] = [
       'SLA + dedicated support',
       'Custom uptime SLA',
     ],
-    cta: 'Contact us',
-    ctaTo: '/contact',
+    cta: 'Get your API key',
+    ctaTo: '/get-started',
   },
 ];
 

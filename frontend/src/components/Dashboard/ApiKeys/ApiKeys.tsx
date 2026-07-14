@@ -127,7 +127,6 @@ export default function ApiKeys() {
                 <th className={styles.th}>Key</th>
                 <th className={styles.th}>Created</th>
                 <th className={styles.th}>Last used</th>
-                <th className={styles.th}>Status</th>
                 <th className={styles.thRight}></th>
               </tr>
             </thead>
@@ -149,13 +148,6 @@ export default function ApiKeys() {
                     </td>
                     <td className={styles.td} data-label="Created">{formatDate(k.created_at)}</td>
                     <td className={styles.td} data-label="Last used">{formatLastUsed(k.last_used_at)}</td>
-                    <td className={styles.td} data-label="Status">
-                      {k.is_active ? (
-                        <span className={`${styles.statusBadge} ${styles.statusActive}`}>Active</span>
-                      ) : (
-                        <span className={`${styles.statusBadge} ${styles.statusRevoked}`}>Revoked</span>
-                      )}
-                    </td>
                     <td className={styles.tdRight}>
                       {k.is_active && (
                         <button

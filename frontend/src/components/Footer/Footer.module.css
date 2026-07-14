@@ -76,7 +76,7 @@
 .columnLink {
   font-size: var(--text-sm);
   font-weight: var(--weight-light);
-  color: var(--text-dim);
+  color: var(--text-muted);
   text-decoration: none;
   transition: color var(--transition-instant);
   width: fit-content;

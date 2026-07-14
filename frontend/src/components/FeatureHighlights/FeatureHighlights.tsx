@@ -238,7 +238,8 @@ function TextBlock({
  */
 function FeatureHighlights() {
   return (
-    <div>
+    // id + scroll-margin so the "Features" nav anchor lands below the fixed navbar
+    <div id="features" style={{ scrollMarginTop: '80px' }}>
       {/* ── Section 1: Webhooks (text LEFT, visual RIGHT) ── */}
       <AnimatedSection>
         <TextBlock

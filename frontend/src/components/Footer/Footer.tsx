@@ -2,10 +2,11 @@ import { Link } from 'react-router-dom';
 import Logo from '../Logo/Logo';
 import styles from './Footer.module.css';
 
-/** Single footer link definition */
+/** Single footer link definition — `to` is a router route, `href` a plain anchor. */
 interface FooterLink {
   label: string;
-  to: string;
+  to?: string;
+  href?: string;
 }
 
 /** Column of links */
@@ -38,7 +39,7 @@ const COLUMNS: FooterColumn[] = [
     links: [
       { label: 'About', to: '/about' },
       { label: 'Blog', to: '/blog' },
-      { label: 'Contact', to: '/contact' },
+      { label: 'Contact', href: 'mailto:muhyudheenmm@gmail.com' },
       { label: 'Careers', to: '/careers' },
     ],
   },
@@ -72,11 +73,17 @@ export default function Footer() {
             <div key={col.heading} className={styles.column}>
               <h4 className={styles.columnHeading}>{col.heading}</h4>
               <nav className={styles.columnLinks}>
-                {col.links.map((link) => (
-                  <Link key={link.to} to={link.to} className={styles.columnLink}>
-                    {link.label}
-                  </Link>
-                ))}
+                {col.links.map((link) =>
+                  link.href ? (
+                    <a key={link.label} href={link.href} className={styles.columnLink}>
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link key={link.label} to={link.to!} className={styles.columnLink}>
+                      {link.label}
+                    </Link>
+                  ),
+                )}
               </nav>
             </div>
           ))}
