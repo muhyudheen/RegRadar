@@ -75,6 +75,14 @@
   color: var(--text-secondary);
 }
 
+.h3 {
+  margin-top: var(--space-8);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
 .p {
   margin-top: var(--space-5);
   font-size: var(--text-md);

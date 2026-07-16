@@ -62,6 +62,61 @@ const WEBHOOK_PAYLOAD = `{
   "detected_at": "2026-07-14T09:14:30Z"
 }`;
 
+const CURL_LIST = `curl "${API_BASE}/v1/changes?page=1&limit=20&jurisdiction=IN&industry=fintech&severity=major" \\
+  -H "Authorization: Bearer lh_live_your_api_key"`;
+
+const LIST_RESPONSE = `{
+  "items": [
+    {
+      "id": "c47a1e02-9f3b-4d81-a0c2-5e6f7a8b9c0d",
+      "jurisdiction": "IN",
+      "industry": "fintech",
+      "topic": "kyc",
+      "source_authority": "Reserve Bank of India",
+      "source_url": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+      "summary": "RBI mandates video-KYC re-verification for accounts dormant over 12 months.",
+      "severity": "critical",
+      "diff": {
+        "added": ["Video-KYC mandatory for accounts dormant more than 12 months"],
+        "removed": ["Periodic document upload considered sufficient"],
+        "modified": []
+      },
+      "status": "ready",
+      "effective_date": "2026-08-01",
+      "detected_at": "2026-07-14T09:14:30Z",
+      "processed_at": "2026-07-14T09:15:10Z"
+    }
+  ],
+  "total": 128,
+  "page": 1,
+  "limit": 20,
+  "has_more": true
+}`;
+
+const PAGINATE_PY = `import requests
+
+API = "${API_BASE}/v1/changes"
+HEADERS = {"Authorization": "Bearer lh_live_your_api_key"}
+
+page = 1
+while True:
+    res = requests.get(API, headers=HEADERS, params={"page": page, "limit": 100})
+    res.raise_for_status()
+    data = res.json()
+
+    for change in data["items"]:
+        print(change["id"], change["severity"], change["summary"])
+
+    if not data["has_more"]:
+        break
+    page += 1`;
+
+const CURL_GET_ONE = `curl "${API_BASE}/v1/changes/c47a1e02-9f3b-4d81-a0c2-5e6f7a8b9c0d" \\
+  -H "Authorization: Bearer lh_live_your_api_key"`;
+
+const CURL_SEARCH = `curl "${API_BASE}/v1/changes/search?q=video-kyc&page=1&limit=20" \\
+  -H "Authorization: Bearer lh_live_your_api_key"`;
+
 const VERIFY_PYTHON = `import hashlib
 import hmac
 import time
@@ -339,10 +394,102 @@ export default function Quickstart() {
             </p>
           </section>
 
-          {/* 4 — Verify signature */}
+          {/* 4 — Fetch the change feed (pull) */}
+          <section id="feed" className={styles.section}>
+            <h2 className={styles.h2}>
+              <span className={styles.stepNum}>4</span> Fetch the change feed
+            </h2>
+            <p className={styles.p}>
+              There are two ways to consume Lawhook.{' '}
+              <strong className={styles.strong}>Push</strong> — the webhooks above — delivers
+              changes in real time the moment they’re detected.{' '}
+              <strong className={styles.strong}>Pull</strong> — this section — lets you fetch
+              change history on demand: backfill after downtime, build your own feed UI, or
+              reconcile what you’ve already processed.
+            </p>
+
+            <h3 className={styles.h3}>List changes</h3>
+            <p className={styles.p}>
+              Returns your changes newest-first (matching your active subscriptions), paginated.
+            </p>
+            <CodeBlock code={CURL_LIST} label="GET /v1/changes" />
+
+            <div className={styles.fields}>
+              <Field name="page" type="int">
+                Page number. Default <code className={styles.inline}>1</code>.
+              </Field>
+              <Field name="limit" type="int">
+                Results per page. Default <code className={styles.inline}>20</code>, max{' '}
+                <code className={styles.inline}>100</code>.
+              </Field>
+              <Field name="jurisdiction" type="string (optional)">
+                Filter by ISO code, e.g. <code className={styles.inline}>IN</code>.
+              </Field>
+              <Field name="industry" type="string (optional)">
+                Filter by industry, e.g. <code className={styles.inline}>fintech</code>.
+              </Field>
+              <Field name="severity" type="string (optional)">
+                <code className={styles.inline}>minor</code>,{' '}
+                <code className={styles.inline}>major</code>, or{' '}
+                <code className={styles.inline}>critical</code>.
+              </Field>
+            </div>
+
+            <p className={styles.p}>The response is an array of changes plus paging metadata:</p>
+            <CodeBlock code={LIST_RESPONSE} label="200 OK" />
+
+            <div className={styles.callout}>
+              <strong className={styles.calloutStrong}>
+                The list already includes the full diff.
+              </strong>{' '}
+              Every <code className={styles.inline}>items[]</code> entry carries the complete
+              change — including the <code className={styles.inline}>diff</code> (
+              <code className={styles.inline}>added</code> /{' '}
+              <code className={styles.inline}>removed</code> /{' '}
+              <code className={styles.inline}>modified</code>) — so you don’t need a second
+              request just to read it.
+            </div>
+
+            <h3 className={styles.h3}>Paginate</h3>
+            <p className={styles.p}>
+              Keep requesting pages until{' '}
+              <code className={styles.inline}>has_more</code> is{' '}
+              <code className={styles.inline}>false</code>.
+            </p>
+            <CodeBlock code={PAGINATE_PY} label="Python" />
+
+            <h3 className={styles.h3}>Get a single change</h3>
+            <p className={styles.p}>
+              Fetch one change by id. It returns the same shape as a list item — diff included —
+              so this is only needed when you already have an id (e.g. a{' '}
+              <code className={styles.inline}>change_id</code> from a webhook).
+            </p>
+            <CodeBlock code={CURL_GET_ONE} label={'GET /v1/changes/{change_id}'} />
+
+            <h3 className={styles.h3}>Search</h3>
+            <p className={styles.p}>
+              Full-text search across summary, source authority, and topic. The query{' '}
+              <code className={styles.inline}>q</code> must be at least 2 characters.{' '}
+              <code className={styles.inline}>page</code> and{' '}
+              <code className={styles.inline}>limit</code> work the same as the list (search
+              takes no jurisdiction/industry/severity filters).
+            </p>
+            <CodeBlock code={CURL_SEARCH} label="GET /v1/changes/search" />
+
+            <div className={styles.callout}>
+              <strong className={styles.calloutStrong}>
+                Call these from your backend, not the browser.
+              </strong>{' '}
+              An API key in browser JavaScript is visible to anyone who opens devtools, and CORS
+              is locked to Lawhook’s own frontend — so browser requests fail anyway. Use the
+              pattern: your frontend → your server → Lawhook.
+            </div>
+          </section>
+
+          {/* 5 — Verify signature */}
           <section id="verify" className={styles.section}>
             <h2 className={styles.h2}>
-              <span className={styles.stepNum}>4</span> Verify the signature
+              <span className={styles.stepNum}>5</span> Verify the signature
             </h2>
             <p className={styles.p}>
               Every webhook is signed so you can confirm it genuinely came from Lawhook.
@@ -362,10 +509,10 @@ export default function Quickstart() {
             <CodeBlock code={VERIFY_NODE} label="Node — Express" />
           </section>
 
-          {/* 5 — Next steps */}
+          {/* 6 — Next steps */}
           <section id="next" className={styles.section}>
             <h2 className={styles.h2}>
-              <span className={styles.stepNum}>5</span> Next steps
+              <span className={styles.stepNum}>6</span> Next steps
             </h2>
             <ul className={styles.linkList}>
               <li>
