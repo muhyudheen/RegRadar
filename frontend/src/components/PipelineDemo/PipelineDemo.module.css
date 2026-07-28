@@ -1,0 +1,327 @@
+/* PipelineDemo — read-only visual walkthrough of one change */
+
+.section {
+  padding: var(--space-20) var(--space-8);
+  background-color: #050505;
+  border-top: 1px solid var(--border);
+}
+
+.inner {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.heading {
+  margin-top: var(--space-3);
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, var(--text-4xl));
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: -0.04em;
+  line-height: var(--leading-tight);
+}
+
+.sub {
+  margin: var(--space-4) auto 0;
+  max-width: 480px;
+  font-size: var(--text-md);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+/* ── Pipeline ── */
+
+.pipeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: var(--space-5);
+}
+
+/* Left rail — node + connector line */
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.line {
+  flex: 1;
+  width: 1px;
+  min-height: var(--space-6);
+  margin: var(--space-2) 0;
+  background: linear-gradient(var(--border), var(--border));
+}
+
+/* Right content */
+.stageContent {
+  padding-bottom: var(--space-8);
+  min-width: 0;
+}
+
+.stageLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.stageTitle {
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+/* ── Stage 1: source ── */
+
+.sourceCard {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+}
+
+.sourceHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.authority {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+
+.changedPill {
+  flex-shrink: 0;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warning);
+  background: var(--warning-muted);
+}
+
+.sourceLine {
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-light);
+  color: var(--text-muted);
+}
+
+.sourceUrl {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ── Stage 2: diff (reuses FeatureHighlights diff look) ── */
+
+.diffSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.8;
+  padding: var(--space-4);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.diffAdded {
+  color: #7dbfa6;
+}
+
+.diffAdded::before {
+  content: '+ ';
+  font-weight: var(--weight-semibold);
+}
+
+.diffRemoved {
+  color: #b87272;
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.diffRemoved::before {
+  content: '- ';
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+/* ── Stage 3: AI ── */
+
+.aiCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+}
+
+.sevBadge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+}
+
+.sevMajor {
+  color: var(--warning);
+  background: var(--warning-muted);
+}
+
+.summaryText {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-light);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+/* ── Stage 4: webhook JSON ── */
+
+.jsonCard {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.jsonBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--success);
+  font-weight: var(--weight-medium);
+}
+
+.jsonDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+
+.jsonUrl {
+  color: var(--text-dim);
+  font-weight: var(--weight-regular);
+}
+
+.pre {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: pre;
+  color: var(--text-dim);
+}
+
+.jsonKey { color: #7aafc8; }
+.jsonString { color: #7dbfa6; }
+.jsonPunct { color: #3d3d3d; }
+
+/* ── CTA ── */
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  margin-top: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.quickstartLink {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  transition: color var(--transition-instant), border-color var(--transition-instant);
+}
+
+.quickstartLink:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: var(--space-16) var(--space-5);
+  }
+
+  .stage {
+    grid-template-columns: 36px 1fr;
+    gap: var(--space-4);
+  }
+
+  .node {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pre {
+    font-size: 11px;
+  }
+}
